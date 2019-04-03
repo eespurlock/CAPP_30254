@@ -1,0 +1,42 @@
+Esther Edith Spurlock
+
+Addignment 1: Diagnostic Writeup
+
+Due: 4/9/2019
+
+Problem 1: Data Acquisition and Analysis
+
+All in code, please see diagnostic.py
+
+Problem 2: Data Augmentation and APIs
+
+1:
+
+2:
+
+3:
+
+4:
+
+Problem 3: Analysis and Communication
+
+1:
+
+2:
+
+A:
+
+B:
+
+3:
+
+4:
+
+Problem 3: (Statistics)
+
+A:
+
+B:
+
+C:
+
