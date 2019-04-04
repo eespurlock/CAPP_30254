@@ -54,7 +54,7 @@ def read_crimes_csv(csvfile=CSV_NAME):
     if os.path.exists(csvfile):
         col_types = {ID: int, CASE_NUM: str, DATE: str, BLOCK: str, IUCR: str,
            PRIMARY: str, DES: str, LOC_DES: str, ARREST: bool, DOMESTIC: bool,
-           BEAT: int, DISTRICT: int, WARD: int, COMMUNITY: int, FBI_CODE: int,
+           BEAT: str, DISTRICT: str, WARD: str, COMMUNITY: str, FBI_CODE: str,
            X_CO: float, Y_CO: float, YEAR: int, UPDATED: str, LAT: int,
            LON: int, LOCATION: str}
         df_crimes = pd.read_csv(csvfile, dtype=col_types)
