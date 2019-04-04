@@ -55,8 +55,8 @@ def read_crimes_csv(csvfile=CSV_NAME):
         col_types = {ID: int, CASE_NUM: str, DATE: str, BLOCK: str, IUCR: str,
            PRIMARY: str, DES: str, LOC_DES: str, ARREST: bool, DOMESTIC: bool,
            BEAT: int, DISTRICT: int, WARD: int, COMMUNITY: int, FBI_CODE: int,
-           X_CO: float, Y_CO float, YEAR: int, UPDATED: str, LAT: int, LON: int,
-           LOCATION: str}
+           X_CO: float, Y_CO: float, YEAR: int, UPDATED: str, LAT: int,
+           LON: int, LOCATION: str}
         df_crimes = pd.read_csv(csvfile, dtype=col_types)
     else:
         #Should exit out of the function if the path doesn't exist.
@@ -72,6 +72,13 @@ def summary_stats(df_crimes):
 	Input: df_crimes: a pandas dataframe
 	'''
 	counted_df = df_crimes[PRIMARY].value_counts()
+	print(counted_df)
+	crimes_plot = sns.barplot(x=PRIMARY, y="Count", dodge=False, data=counted_df)
+    plt.title("Each Candidate's Favorite Phrase")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    phrase_plot.figure.savefig(output_filename)
+	
 
 
 
