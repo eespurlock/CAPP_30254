@@ -10,7 +10,7 @@ All in code, please see diagnostic.py
 
 Problem 2: Data Augmentation and APIs
 
-1:
+1: 
 
 2:
 
@@ -20,17 +20,42 @@ Problem 2: Data Augmentation and APIs
 
 Problem 3: Analysis and Communication
 
-1:
+1: How has crime changed from 2017 to 2018?
+In 2017 there were 268,093 total crimes reported
+In 2018 there were 266,232 total crimes reported
+This is a 0.69% reduction in the reported number of crimes
 
-2:
+2: More granular analysis of how crime has changed
 
-A:
+A: Are the Alderman's statistics correct?
+i: Compare data from 2017 and 2018 in July
+ia: Robberies
+	2017: 1004
+	2018: 876
+	Drop of 12.7%
+ib: Aggravated batteries
+	2017: 4702
+	2018: 4881
+	Rose 3.8%
+ic: Burglaries
+	2017: 1206
+	2018: 1139
+	Drop of 5.56%
+id: Motor Vehicle Theft
+	2017: 991
+	2018: 865
+	Drop of 12.7%
+ie: Crime since 2017 has actually dropped, not risen by 10%
+if: We do not have the 2016 data
 
-B:
+B: Do I agree with the conclusions?
+No, I think these statements are misleading and I think the Alderman has a political agenda. Most of the crimes listed have actually dropped overall.
 
-3:
+3: Key Crime Findings
 
-4:
+4: Caveats
+This is all based on the reported crimes, not necessarily the total amount of crime.
+The crime rate is subject to change and you should keep an eye on this.
 
 Problem 3: (Statistics)
 
