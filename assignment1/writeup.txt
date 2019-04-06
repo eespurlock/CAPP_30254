@@ -52,6 +52,8 @@ B: Do I agree with the conclusions?
 No, I think these statements are misleading and I think the Alderman has a political agenda. Most of the crimes listed have actually dropped overall.
 
 3: Key Crime Findings
+Reported crimes are falling
+Theft and battery are the two types of crime that have the largest number of calls
 
 4: Caveats
 This is all based on the reported crimes, not necessarily the total amount of crime.
@@ -64,4 +66,16 @@ A:
 B:
 
 C:
+GP: 600
+GP Batter: 100
+GP Battery % = 100 / 600 = 16.6%
+
+Up: 400
+Up Battery: 160
+Up Battery % = 160 / 400 = 40.0%
+
+Total GP Battery % = 100 / 1000 = 10%
+Total Up Battery % = 160 / 1000 = 16%
+
+There is a 6% greater chance that a call about battery will come from Uptown than the chance that it will come from Garfield Park.
 
