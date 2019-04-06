@@ -52,12 +52,7 @@ def read_crimes_csv(csvfile=CSV_NAME):
     Input: csvfile: the name of a CSV file
     '''
     if os.path.exists(csvfile):
-        col_types = {ID: int, CASE_NUM: str, DATE: str, BLOCK: str, IUCR: str,
-           PRIMARY: str, DES: str, LOC_DES: str, ARREST: bool, DOMESTIC: bool,
-           BEAT: str, DISTRICT: str, WARD: str, COMMUNITY: str, FBI_CODE: str,
-           X_CO: float, Y_CO: float, YEAR: int, UPDATED: str, LAT: int,
-           LON: int, LOCATION: str}
-        df_crimes = pd.read_csv(csvfile, dtype=col_types)
+        df_crimes = pd.read_csv(csvfile)
     else:
         #Should exit out of the function if the path doesn't exist.
     	print("No path to this CSV")
@@ -71,15 +66,13 @@ def summary_stats(df_crimes):
 
 	Input: df_crimes: a pandas dataframe
 	'''
+	#This will give you counts of all the different kinds of crimes
 	counted_df = df_crimes[PRIMARY].value_counts()
-	print(counted_df)
-	crimes_plot = sns.barplot(x=PRIMARY, y="Count", dodge=False, data=counted_df)
-    plt.title("Each Candidate's Favorite Phrase")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    phrase_plot.figure.savefig(output_filename)
-	
+	#This will show you how crimes change over time
+	year_crimes = df_crimes.groupby(["Year","Primary Type"]).size()
+	#This will show you how crimes differ by block
+	block_crimes = df_crimes.groupby(["Block", "Primary Type"]).size()
 
-
+	return counted_df, year_crimes, block_crimes
 
 #Problem 2
