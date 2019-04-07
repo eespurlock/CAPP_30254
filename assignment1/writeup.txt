@@ -66,16 +66,13 @@ A:
 B:
 
 C:
-GP: 600
-GP Batter: 100
-GP Battery % = 100 / 600 = 16.6%
+Total Calls: 1,000
+GP Battery Calls: 100
+Uptown Battery Calls: 160
+Total Battery Calls: 260
+% of battery calls frm GP: 100 / 260 = 38.46%
+% of battery calls from Uptown: 160 / 260 = 61.53%
+61.53 - 38.46 = 23.07
 
-Up: 400
-Up Battery: 160
-Up Battery % = 160 / 400 = 40.0%
-
-Total GP Battery % = 100 / 1000 = 10%
-Total Up Battery % = 160 / 1000 = 16%
-
-There is a 6% greater chance that a call about battery will come from Uptown than the chance that it will come from Garfield Park.
+There is a 23.07% greater chance that a call about battery will come from Uptown than the chance that it will come from Garfield Park.
 
