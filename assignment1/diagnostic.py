@@ -91,30 +91,68 @@ def analyze_chicago_crimes():
     #This data is problematic because it is from 2010, but it was the most
     #recent tract data I could find
     census_tract = ("https://data.cityofchicago.org/Facilities-Geographic-"
-    	"Boundaries/Boundaries-Census-Tracts-2010/")
+        "Boundaries/Boundaries-Census-Tracts-2010/")
     clinet_tract = Socrata(census_tract, None)
     tract_id = "5jrd-6zik"
     results_tract = dwonload_all_data(clinet_tract, tract_id)
     tract_df = pd.Dataframe.from_records(results_tract)
     tract_df.rename(\
-    	index=str, columns={"TRACTCE10": "tract", "COMMAREA": "Community Area"})
+        index=str, columns={"TRACTCE10": "tract", "COMMAREA": "Community Area"})
 
     #The following gives names for all the community areas
     community_area = ("https://data.cityofchicago.org/Facilities-Geographic-"
-    	"Boundaries/Boundaries-Community-Areas-current-/")
+        "Boundaries/Boundaries-Community-Areas-current-/")
     client_area = Socrata(community_area, None)
     area_id = "cauq-8yn6"
     results_area = dwonload_all_data(client_area, area_id)
     area_df = pd.DataFrame.from_records(results_area)
     area_df.rename(index=str, columns={"AREA_NUMBE": "Community Area"})
 
-    #stops_searches_df = stops_df.merge(searches_df, how='left', on=STOP_ID)
+    #Merging all of our 'beautiful' data
     tract_with_area = area_df.merge(tract_df, how='left', on='Community Area')
-    crimes_with_area = acs_df.merge(tract_with_area, how='left', on="tract")
+    acs_with_geo = acs_df.merge(tract_with_area, how='left', on="tract")
+    crimes_with_acs_2017 = acs_with_geo\
+        .merge(crimes_df_2017, how='left', on='Community Area')
+    crimes_with_acs_2018 = acs_with_geo\
+        .merge(crimes_df_2018, how='left', on='Community Area')
+
+    #Code for question 1 / 3
+    filt_battery_2017 = crimes_with_acs_2017["Primary Type"].isin(["BATTERY"])
+    df_filt_2017 = crimes_with_acs_2017[filt_battery_2017]
+    df_filt_2017.groupby(["COMMUNITY","B01001_001E","B01001_002E",
+        "B99212_003E"]).size()
+
+    filt_battery_2018 = crimes_with_acs_2018["Primary Type"].isin(["BATTERY"])
+    df_filt_2018 = crimes_with_acs_2018[filt_battery_2018]
+    df_filt_2018.groupby(["COMMUNITY","B01001_001E","B01001_002E",
+        "B99212_003E"]).size()
+
+    #Code for question 2 / 3
+    filt_hom_2017 = crimes_with_acs_2017["Primary Type"].isin(["HOMICIDE"])
+    df_filt_2017 = crimes_with_acs_2017[filt_hom_2017]
+    df_filt_2017.groupby(["COMMUNITY","B01001_001E","B01001_002E",
+        "B99212_003E"]).size()
+
+    filt_hom_2018 = crimes_with_acs_2018["Primary Type"].isin(["HOMICIDE"])
+    df_filt_2018 = crimes_with_acs_2018[filt_hom_2018]
+    df_filt_2018.groupby(["COMMUNITY","B01001_001E","B01001_002E",
+        "B99212_003E"]).size()
+
+    #Code for question 4
+    filt_mult_2017 = crimes_with_acs_2017["Primary Type"].isin(
+        ["DECEPTIVE PRACTICE", "SEX OFFENSE"])
+    df_filt_2017 = crimes_with_acs_2017[filt_mult_2017]
+    df_filt_2017.groupby(["Primary Type","COMMUNITY","B01001_001E",
+        "B01001_002E","B99212_003E"]).size()
+
+    filt_mult_2018 = crimes_with_acs_2018["Primary Type"].isin(
+        ["DECEPTIVE PRACTICE", "SEX OFFENSE"])
+    df_filt_2018 = crimes_with_acs_2018[filt_mult_2018]
+    df_filt_2018.groupby(["Primary Type", "COMMUNITY","B01001_001E",
+        "B01001_002E", "B99212_003E"]).size()
 
     #Below is the code for how I answered some of the questions in the writeup
     #Problem 3 - 1
-
     filt_2017 = crimes_df_2017["Month"].isin([7])
     filt_2018 = crimes_df_2018["Month"].isin([7])
     
