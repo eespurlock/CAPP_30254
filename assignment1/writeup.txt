@@ -61,7 +61,23 @@ The crime rate is subject to change and you should keep an eye on this.
 
 Problem 3: (Statistics)
 
-A:
+A: Crimes on 021XX S Michigan Ave 2017 and 2018
+Primary types 			Counts		Percent
+ASSAULT                    6		10.00%
+BATTERY                   16		26.67%
+BURGLARY                   1		 1.67%
+CRIMINAL DAMAGE            6		10.00%
+CRIMINAL TRESPASS          1		 1.67%
+DECEPTIVE PRACTICE         6		10.00%
+MOTOR VEHICLE THEFT        2		 3.33%
+OTHER OFFENSE             13		21.67%
+PUBLIC PEACE VIOLATION     1		 1.67%
+ROBBERY                    2		 3.33%
+THEFT                      6		10.00%
+TOTAL 					  60
+Most Likely crime: Battery
+
+
 
 B:
 

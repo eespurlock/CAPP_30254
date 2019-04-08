@@ -61,7 +61,6 @@ def analyze_chicago_crimes():
     results_acs = client_acs.get(limit=limit)
     acs_df = pd.DataFrame.from_records(results_acs)
 
-
     #Problem 3
     crimes_df_2017["Date"]= pd.to_datetime(crimes_df_2017["Date"])
     crimes_df_2017["Month"] = crimes_df_2017["Date"].dt.month
@@ -83,3 +82,14 @@ def analyze_chicago_crimes():
     	"BURGLARY", "MOTOR VEHICLE THEFT"])
     df_filt_2018 = df_filt_2018[filt]
     df_filt_2018.groupby(["Year", "Primary Type"]).size()
+    
+    #Problem 3 - 2
+    #A
+    filt_2017 = crimes_df_2017["Block"].isin(["021XX S MICHIGAN AVE"])
+    df_filt_2017 = crimes_df_2017[filt_2017]
+    df_filt_2017.groupby(["Primary Type"]).size()
+
+    filt_2018 = crimes_df_2018["Block"].isin(["021XX S MICHIGAN AVE"])
+    df_filt_2018 = crimes_df_2018[filt_2018]
+    df_filt_2018.groupby(["Primary Type"]).size()
+
