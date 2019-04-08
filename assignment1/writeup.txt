@@ -839,7 +839,7 @@ Which crimes are committed on which blocks (this was too long to give you in ent
 
 Problem 2: Data Augmentation and APIs
 
-So, because I couldn't get the ACS data to merge with the crimes data, I could not complete this section.
+So, because I couldn't get my API to work, I didn't get the data together to answer any of these questions.
 
 Shower your wrath upon me as you see fit.
 
@@ -909,8 +909,8 @@ OTHER OFFENSE             13		21.67%
 PUBLIC PEACE VIOLATION     1		 1.67%
 ROBBERY                    2		 3.33%
 THEFT                      6		10.00%
-TOTAL 					  60
-Most Likely crime: Battery
+TOTAL 					  60		---
+Most Likely crime: Battery (26.67%)
 
 B: (I did not answer this because of my inability to do part 2)
 

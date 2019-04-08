@@ -29,14 +29,12 @@ def analyze_chicago_crimes():
     #I am going to apologize in advance to the grader who has the misfortune of
     #Looking through this. It is a hot mess and I'm not going to try to hide it.
 
-    crimes_2017 = ("https://data.cityofchicago.org/resource")
-    client_2017 = Socrata(crimes_2017, None)
+    crimes = ("https://data.cityofchicago.org/resource/")
+    client = Socrata(crime, None)
     dataset_id_2017 = "d62x-nvdr"
-    results_2017 = dwonload_all_data(client_2017, dataset_id_2017)
-    crimes_2018 = ("https://data.cityofchicago.org/resource")
-    client_2018 = Socrata(crimes_2018, None)
+    results_2017 = dwonload_all_data(client, dataset_id_2017)
     dataset_id_2018 = "3i3m-jwuy"
-    results_2018 = dwonload_all_data(client_2018, dataset_id_2018)
+    results_2018 = dwonload_all_data(client, dataset_id_2018)
 
     crimes_df_2017 = pd.DataFrame.from_records(results_2017)
     crimes_df_2018 = pd.DataFrame.from_records(results_2018)
@@ -66,8 +64,10 @@ def analyze_chicago_crimes():
     month_crimes_2018.plot()
 
     #Breaks down kinds of crime by month
-    month_type_crimes_2017 = crimes_df_2017.groupby(["Month", "Primary Type"]).size()
-    month_type_crimes_2018 = crimes_df_2018.groupby(["Month", "Primary Type"]).size()
+    month_type_crimes_2017 = crimes_df_2017.groupby(["Month", "Primary Type"])\
+        .size()
+    month_type_crimes_2018 = crimes_df_2018.groupby(["Month", "Primary Type"])\
+        .size()
 
     #This will show you how crimes differ by block
     block_crimes_2017 = crimes_df_2017.groupby(["Block", "Primary Type"]).size()
@@ -79,15 +79,38 @@ def analyze_chicago_crimes():
     #This links to information about the total population, population of men
     #(for gender separation), and the allocation of military service for
     #civilian veterans
-    #So, this one is an issue for a number of reasons. Mostly because I couldn't
-    #figure out the merges on the different data
     acs_5year_data = ("https://api.census.gov/data/2017/acs/acs5?"
         "get=B01001_001E,B01001_002E,B99212_003E,"
-        "NAME&for=block%20group:*&in=state:17%20county:031")
+        "NAME&for=block%20group:*&in=state:17%20county:031"
+        "&key=5f73e259b50f6b42c86fddc370dda1f276928cc1")
     client_acs = Socrata(acs_5year_data, None)
     acs_id = "acs5"
     results_acs = dwonload_all_data(client_acs, acs_id)
     acs_df = pd.DataFrame.from_records(results_acs)
+
+    #This data is problematic because it is from 2010, but it was the most
+    #recent tract data I could find
+    census_tract = ("https://data.cityofchicago.org/Facilities-Geographic-"
+    	"Boundaries/Boundaries-Census-Tracts-2010/")
+    clinet_tract = Socrata(census_tract, None)
+    tract_id = "5jrd-6zik"
+    results_tract = dwonload_all_data(clinet_tract, tract_id)
+    tract_df = pd.Dataframe.from_records(results_tract)
+    tract_df.rename(\
+    	index=str, columns={"TRACTCE10": "tract", "COMMAREA": "Community Area"})
+
+    #The following gives names for all the community areas
+    community_area = ("https://data.cityofchicago.org/Facilities-Geographic-"
+    	"Boundaries/Boundaries-Community-Areas-current-/")
+    client_area = Socrata(community_area, None)
+    area_id = "cauq-8yn6"
+    results_area = dwonload_all_data(client_area, area_id)
+    area_df = pd.DataFrame.from_records(results_area)
+    area_df.rename(index=str, columns={"AREA_NUMBE": "Community Area"})
+
+    #stops_searches_df = stops_df.merge(searches_df, how='left', on=STOP_ID)
+    tract_with_area = area_df.merge(tract_df, how='left', on='Community Area')
+    crimes_with_area = acs_df.merge(tract_with_area, how='left', on="tract")
 
     #Below is the code for how I answered some of the questions in the writeup
     #Problem 3 - 1
