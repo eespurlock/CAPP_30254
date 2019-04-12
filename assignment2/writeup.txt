@@ -3,3 +3,5 @@ Esther Edith Spurlock (12196692)
 CAPP 30254
 
 Assignment 2: Writeup for Machine Learning Pipeline
+
+For this assignment, I am assuming that we will have a binary variable that our features will predict.
