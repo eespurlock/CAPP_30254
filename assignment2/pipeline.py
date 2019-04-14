@@ -9,7 +9,8 @@ Assignment 2: Machine Learning Pipeline
 #Imports
 import pandas as pd
 import sklearn as skl
-import joblib
+from sklearn.model_selection import train_test_split
+import pickle
 import os.path
 
 #Constants for this assignment
@@ -49,28 +50,36 @@ def import_data(csv_name):
         df_all_data = pd.read_csv(csv_name)
     else:
         print("Pathway to the CSV does not exist")
-        return None * 4
-    all_cols = df_all_data.columns()
-    explore_data(df_all_data)
+        return None, None, None, None
+    all_cols = df_all_data.columns
+    explore_data(df_all_data, all_cols)
     df_all_data = process_data(df_all_data, all_cols)
-    var, features = generate_var_feat(df_all_data)
+    var, features = generate_var_feat(df_all_data, all_cols)
     if len(features) != len(all_cols):
-        df_all_data = drop_extra_columns(df_all_data, features + var, all_cols)
-    train_df, test_df = skl.model_selection.train_test_split(df_all_data,
-        train_size=0.9, test_size=0.1)
+        df_all_data = drop_extra_columns(df_all_data, features + [var],
+            all_cols)
+    train_df, test_df = train_test_split(df_all_data, train_size=0.9,
+        test_size=0.1)
     return train_df, test_df, var, features
 
-def explore_data(df_all_data):
+def explore_data(df_all_data, all_cols):
     '''
     Explores the raw data
 
     Inputs:
         df_all_data: a pandas dataframe
+        all_cols: list of the column names in df
     '''
-    data_summary = df_all_data.describe(include='all')
-    #Generate distributions of variables
-    #Find correlations between variables
-    #Find outliers
+    index = 0
+    for col in all_cols:
+        curr_series = df_all_data[col]
+        #Describes the data in the column
+        curr_series.describe()
+        for col2 in all_cols[index + 1:]:
+           comp_series = df_all_data[col2]
+           #Finds correlation between two columns
+           curr_series.corr(comp_series, method='pearson')
+        index += 1
 
 def process_data(df_all_data, all_cols):
     '''
@@ -91,12 +100,13 @@ def process_data(df_all_data, all_cols):
     for col in all_cols:
         if df_all_data[col].isna().sum() > (row_count / 3):
             #Deletes all cols with more than a third of entries listed as na
-            df_all_data.drop([col], axis=1)
+            df_all_data = df_all_data.drop([col], axis=1)
         for col_compare in all_cols:
-            if df_all_data[col].equals(df_all_data[col_compare]):
-                #Deletes cols that are duplicates
-                df_all_data.drop([col_compare], axis=1)
-        if df_all_data[col].dtype is in [int, float]:
+            if col_compare != col:
+                if df_all_data[col].equals(df_all_data[col_compare]):
+                    #Deletes cols that are duplicates
+                    df_all_data = df_all_data.drop([col_compare], axis=1)
+        if df_all_data[col].dtype in [int, float]:
             fill_na_vals[col] = df_all_data[col].mean()
         else:
             fill_na_vals[col] = None
@@ -106,18 +116,70 @@ def process_data(df_all_data, all_cols):
 
     return df_all_data
 
-def generate_var_feat(df_all_data):
+def generate_var_feat(df_all_data, all_cols):
     '''
     Identifies which column will be the variable we want to predict and which
     columns will be the features we want to use to predict the variable
 
     Inputs:
        df_all_data: a pandas dataframe
+       all_cols: column names in the df
 
     Outputs:
         var: the column name we want to predict
         features: a list of columns we will use to predict the variable
     '''
+    #Need to find a way to find the var
+    potential_var = []
+    for col in all_cols:
+        num_entries = df_all_data[col].value_counts().size
+        if num_entries == 2:
+            potential_var.append(col)
+    if potential_var == []:
+        print("No binary variable")
+        var = None
+        return var, []
+    elif len(potential_var) == 1:
+        var = potential_var[0]
+    else:
+        #Pick the variable with the strongest correlation
+        var = find_strongest_corr(df_all_data, all_cols, potential_var)
+    features = []
+    var_series = df_all_data[var]
+    for col in all_cols:
+        comp_series = df_all_data[col]
+        var_corr = var_series.corr(comp_series, method='pearson')
+        if abs(var_corr) > 0.01:
+            #Only adds column to features if its linear correlation with var
+            #is within 0.01 of 0
+            features.append(col)
+    return var, features
+
+def find_strongest_corr(df_all_data, all_cols, potential_var):
+    '''
+    Determines which potential variable is most strongly correlated with
+    the other columns in the dataframe
+
+    Inputs:
+        df_all_data: pandas dataframe
+        all_cols: list of column names in df
+        potential_var: list of potential variables in the df
+    Outputs:
+        var: the variable for our database
+    '''
+    max_corr = 0
+    best_var = None
+    for col in potential_var:
+        curr_corr = 0
+        curr_series = df_all_data[col]
+        for col2 in all_cols:
+            comp_series = df_all_data[col2]
+            curr_corr += curr_series.corr(comp_series, method='pearson')
+        if curr_corr > max_corr:
+            #If there is a tie, we choose the one that comes first
+            max_corr = curr_corr
+            best_var = col
+    return best_var
 
 def drop_extra_columns(df_all_data, col_list, all_cols):
     '''
@@ -139,7 +201,7 @@ def drop_extra_columns(df_all_data, col_list, all_cols):
         if col not in col_list:
             to_drop.append(col)
     if to_drop != []:
-        df_all_data.drop(to_drop, axis=1)
+        df_all_data = df_all_data.drop(to_drop, axis=1)
     return df_all_data
 
 '''
