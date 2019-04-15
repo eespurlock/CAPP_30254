@@ -4,4 +4,143 @@ CAPP 30254
 
 Assignment 2: Writeup for Machine Learning Pipeline
 
-For this assignment, I am assuming that we will have a binary variable that our features will predict.
+Assumptions for this assignment:
+1: We will have a binary variable that our features will predict. 
+2: Our features will have a linear correlation with our variable
+
+Results of data exploration not used in code:
+
+Name: SeriousDlqin2yrs, dtype: float64
+count    41016.000000
+mean         0.161400
+std          0.367904
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max          1.000000
+
+Name: RevolvingUtilizationOfUnsecuredLines, dtype: float64
+count    41016.00000
+mean         6.37587
+std        221.61895
+min          0.00000
+25%          0.03431
+50%          0.18973
+75%          0.66716
+max      22000.00000
+
+Name: age, dtype: float64
+count    41016.000000
+mean        51.683489
+std         14.746880
+min         21.000000
+25%         41.000000
+50%         51.000000
+75%         62.000000
+max        109.000000
+
+Name: zipcode, dtype: float64
+count    41016.000000
+mean     60623.824166
+std         11.984357
+min      60601.000000
+25%      60618.000000
+50%      60625.000000
+75%      60629.000000
+max      60644.000000
+
+Name: NumberOfTime30-59DaysPastDueNotWorse, dtype: float64
+count    41016.000000
+mean         0.589233
+std          5.205628
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max         98.000000
+
+Name: DebtRatio, dtype: float64
+count     41016.000000
+mean        331.458137
+std        1296.109695
+min           0.000000
+25%           0.176375
+50%           0.369736
+75%           0.866471
+max      106885.000000
+
+Name: MonthlyIncome, dtype: float64
+count    3.304200e+04
+mean     6.578996e+03
+std      1.344683e+04
+min      0.000000e+00
+25%      3.333000e+03
+50%      5.250000e+03
+75%      8.055750e+03
+max      1.794060e+06
+
+Name: NumberOfOpenCreditLinesAndLoans, dtype: float64
+count    41016.000000
+mean         8.403477
+std          5.207324
+min          0.000000
+25%          5.000000
+50%          8.000000
+75%         11.000000
+max         56.000000
+
+Name: NumberOfTimes90DaysLate, dtype: float64
+count    41016.000000
+mean         0.419592
+std          5.190382
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max         98.000000
+
+Name: NumberRealEstateLoansOrLines, dtype: float64
+count    41016.000000
+mean         1.008801
+std          1.153826
+min          0.000000
+25%          0.000000
+50%          1.000000
+75%          2.000000
+max         32.000000
+
+Name: NumberOfTime60-89DaysPastDueNotWorse, dtype: float64
+count    41016.000000
+mean         0.371587
+std          5.169641
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max         98.000000
+
+Name: NumberOfDependents, dtype: float64
+count    39979.000000
+mean         0.773231
+std          1.121269
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          1.000000
+max         13.000000
+
+Columns used for testing and training:
+
+PersonID
+SeriousDlqin2yrs
+age
+zipcode
+NumberOfTime30-59DaysPastDueNotWorse
+DebtRatio
+MonthlyIncome
+NumberOfOpenCreditLinesAndLoans
+NumberOfTimes90DaysLate
+NumberRealEstateLoansOrLines
+NumberOfTime60-89DaysPastDueNotWorse
+NumberOfDependents

@@ -58,6 +58,8 @@ def import_data(csv_name):
     if len(features) != len(all_cols):
         df_all_data = drop_extra_columns(df_all_data, features + [var],
             all_cols)
+    #Need to update the all_cols variable
+    all_cols = df_all_data.columns
     df_all_data = continuous_to_discrete(df_all_data, all_cols)
     #Splits the data into training and testing data
     train_df, test_df = train_test_split(df_all_data, train_size=0.9,
@@ -67,6 +69,9 @@ def import_data(csv_name):
 def explore_data(df_all_data, all_cols):
     '''
     Explores the raw data
+    Note to grader/professor: I wasn't 100% certain what you wanted from this
+    I have added some of the output from this into the later code and the
+    writeup. I hope that is enough for you!
 
     Inputs:
         df_all_data: a pandas dataframe
