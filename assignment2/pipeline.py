@@ -52,12 +52,13 @@ def import_data(csv_name):
         print("Pathway to the CSV does not exist")
         return None, None, None, None
     all_cols = df_all_data.columns
-    explore_data(df_all_data, all_cols)
+    corr_dict, description_dict = explore_data(df_all_data, all_cols)
     df_all_data = process_data(df_all_data, all_cols)
-    var, features = generate_var_feat(df_all_data, all_cols)
+    var, features = generate_var_feat(df_all_data, all_cols, corr_dict)
     if len(features) != len(all_cols):
         df_all_data = drop_extra_columns(df_all_data, features + [var],
             all_cols)
+    #Splits the data into training and testing data
     train_df, test_df = train_test_split(df_all_data, train_size=0.9,
         test_size=0.1)
     return train_df, test_df, var, features
@@ -69,17 +70,25 @@ def explore_data(df_all_data, all_cols):
     Inputs:
         df_all_data: a pandas dataframe
         all_cols: list of the column names in df
+
+    Outputs:
+        corr_dict: a dictionary showing the correlation coefficient of all
+           columns to each other
+        description_dict: a dictinary describing the data in each column
     '''
-    index = 0
+    corr_dict = {}
+    description_dict = {}
     for col in all_cols:
         curr_series = df_all_data[col]
         #Describes the data in the column
-        curr_series.describe()
-        for col2 in all_cols[index + 1:]:
-           comp_series = df_all_data[col2]
-           #Finds correlation between two columns
-           curr_series.corr(comp_series, method='pearson')
-        index += 1
+        description_dict[col] = curr_series.describe()
+        corr_dict[col] = {}
+        for col2 in all_cols:
+            comp_series = df_all_data[col2]
+            #Finds correlation between two columns
+            curr_corr = curr_series.corr(comp_series, method='pearson')
+            corr_dict[col][col2] = curr_corr
+    return corr_dict, description_dict
 
 def process_data(df_all_data, all_cols):
     '''
@@ -116,7 +125,7 @@ def process_data(df_all_data, all_cols):
 
     return df_all_data
 
-def generate_var_feat(df_all_data, all_cols):
+def generate_var_feat(df_all_data, all_cols, corr_dict):
     '''
     Identifies which column will be the variable we want to predict and which
     columns will be the features we want to use to predict the variable
@@ -124,12 +133,13 @@ def generate_var_feat(df_all_data, all_cols):
     Inputs:
        df_all_data: a pandas dataframe
        all_cols: column names in the df
+       corr_dict: a dictionary of correlation between all columns
 
     Outputs:
         var: the column name we want to predict
         features: a list of columns we will use to predict the variable
     '''
-    #Need to find a way to find the var
+    #First, we find the variable
     potential_var = []
     for col in all_cols:
         num_entries = df_all_data[col].value_counts().size
@@ -143,27 +153,26 @@ def generate_var_feat(df_all_data, all_cols):
         var = potential_var[0]
     else:
         #Pick the variable with the strongest correlation
-        var = find_strongest_corr(df_all_data, all_cols, potential_var)
+        var = find_strongest_corr(potential_var, corr_dict)
+    
+    #Now we find the features
     features = []
-    var_series = df_all_data[var]
     for col in all_cols:
-        comp_series = df_all_data[col]
-        var_corr = var_series.corr(comp_series, method='pearson')
+        var_corr = corr_dict[var][col]
         if abs(var_corr) > 0.01:
             #Only adds column to features if its linear correlation with var
             #is within 0.01 of 0
             features.append(col)
     return var, features
 
-def find_strongest_corr(df_all_data, all_cols, potential_var):
+def find_strongest_corr(potential_var, corr_dict):
     '''
     Determines which potential variable is most strongly correlated with
     the other columns in the dataframe
 
     Inputs:
-        df_all_data: pandas dataframe
-        all_cols: list of column names in df
         potential_var: list of potential variables in the df
+        corr_dict: dictionary of correlation coefficients between columns
     Outputs:
         var: the variable for our database
     '''
@@ -171,10 +180,9 @@ def find_strongest_corr(df_all_data, all_cols, potential_var):
     best_var = None
     for col in potential_var:
         curr_corr = 0
-        curr_series = df_all_data[col]
-        for col2 in all_cols:
-            comp_series = df_all_data[col2]
-            curr_corr += curr_series.corr(comp_series, method='pearson')
+        curr_dict = corr_dict[col]
+        for key, val in curr_dict.items():
+            curr_corr += abs(val)
         if curr_corr > max_corr:
             #If there is a tie, we choose the one that comes first
             max_corr = curr_corr
