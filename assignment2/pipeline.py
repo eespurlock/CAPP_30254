@@ -58,6 +58,7 @@ def import_data(csv_name):
     if len(features) != len(all_cols):
         df_all_data = drop_extra_columns(df_all_data, features + [var],
             all_cols)
+    df_all_data = continuous_to_discrete(df_all_data, all_cols)
     #Splits the data into training and testing data
     train_df, test_df = train_test_split(df_all_data, train_size=0.9,
         test_size=0.1)
@@ -210,6 +211,28 @@ def drop_extra_columns(df_all_data, col_list, all_cols):
             to_drop.append(col)
     if to_drop != []:
         df_all_data = df_all_data.drop(to_drop, axis=1)
+    return df_all_data
+
+def continuous_to_discrete(df_all_data, all_cols):
+    '''
+    Determines which columns can be classified as continuous and turns them
+    into discrete columns
+
+    Inputs:
+        df_all_data: a pandas dataframe
+        all_cols: list of all column names
+
+    Outputs:
+        df_all_data: a pandas dataframe
+    '''
+    all_rows = df_all_data.shape[0]
+    for col in all_cols:
+        num_entries = df_all_data[col].value_counts().size
+        ratio = num_entries / all_rows
+        if ratio > 0.80 and ratio != 1.0:
+            curr_series = df_all_data[col]
+            df_all_data[col] = pd.cut(curr_series, bins=10, labels=False,
+                include_lowest=True)
     return df_all_data
 
 '''
