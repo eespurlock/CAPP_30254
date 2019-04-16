@@ -4,6 +4,10 @@ CAPP 30254
 
 Assignment 2: Writeup for Machine Learning Pipeline
 
+Assumptions for this assignment:
+1: We will have a binary variable that our features will predict. 
+2: Our features will have a linear correlation with our variable
+
 Methodology:
 
 The code begins and ends with the pipeline function, whose sole goal is to bring the code together.
@@ -28,16 +32,100 @@ If the code for the next two tasks looks familiar, it is because I borrowed heav
 
 Task 5: I then went to the train_data function. Here, I split the data into testing and training data. Next, I created decision tree models of various depths to test the accuracy at different depths.
 
-Task 6: For each decision tree depth, I called the test_data function to get the accuracy of each decision tree depth.
+Task 6: For each decision tree depth, I called the test_data function to get the accuracy of each decision tree depth. I also used a variety of testing thresholds to see how accurate the data could be.
 
 Finally, I returned a dictionary mapping decision tree depths to their corresponding accuracy back to the pipeline function.
 
 The Verdict:
-After running my model across various depths and using various thesholds (ranging from 0.01 to 1.0) I got an accuracy score for all models of 1.0. I am highly skeptical of this number considering this implies I am 100% accurate.
+After running my model across various depths and using various thesholds, I got accuracy scores ranging from 0.94466... to 0.17016.... I have listed my accuracy scores from greatest to least along with their corresponding depths and thresholds.
 
-Assumptions for this assignment:
-1: We will have a binary variable that our features will predict. 
-2: Our features will have a linear correlation with our variable
+Based on these results, I can say the following: a depth of 50, 100 or 200 gives os an accuracy above 0.9 at a threshold of 0.01. 
+
+Given that depths of that high are not always practical, the most accurate model at the lowest threshold if a depth of 5 with a threshold of 0.4. However, models with a depth of 5 have the 2nd lowest accuracy score at a threshold of 0.01.
+
+The models with the lowest accuracy were all at a threshold of 0.01 with depths of 1, 5, 10 (going from lowest to greatest accuracy).
+
+While models with depths of 10 and 20 do not do phenominally at a threshold of 0.01, they are not horrible either.
+
+If you can not afford to have depths of 50 or greater, the best choice is probably a depth of 20 or 10. If you need single digits, a depth of 5 will do just fine.
+
+Depth:  5
+Threshold:  0.4
+Accuracy:  0.9446611409068747
+
+Depth:  5
+Threshold:  0.6
+Accuracy:  0.9427108727450024
+
+Depth:  10
+Threshold:  [0.8, 1.0]
+Accuracy:  0.9419795221843004
+
+Depth:  10
+Threshold:  0.6
+Accuracy:  0.9417357386640663
+
+Depth:  1
+Thresholds:  [0.1, 0.4, 0.6, 0.8, 1.0]
+Accuracy:  0.9414919551438323
+
+Depth:  5
+Thresholds:  [0.8, 1.0]
+Accuracy:  0.9414919551438323
+
+Depth:  10
+Threshold:  0.4
+Accuracy:  0.9405168210628961
+
+Depth:  20
+Thresholds:  [0.8, 1.0]
+Accuracy:  0.9261335933690883
+
+Depth:  20
+Threshold:  0.6
+Accuracy:  0.9254022428083861
+
+Depth:  100
+Thresholds:  [0.01, 0.1, 0.4, 0.6, 0.8, 1.0]
+Accuracy:  0.9107752315943443
+
+Depth:  50
+Thresholds:  [0.01, 0.1, 0.4, 0.6, 0.8, 1.0]
+Accuracy:  0.908824963432472
+
+Depth:  200
+Thresholds:  [0.01, 0.1, 0.4, 0.6, 0.8, 1.0]
+Accuracy:  0.9051682106289615
+
+Depth:  5
+Threshold:  0.1
+Accuracy:  0.9029741589468552
+
+Depth:  20
+Threshold:  0.1
+Accuracy:  0.9002925402242808
+
+Depth:  10
+Threshold:  0.1
+Accuracy:  0.8832276938078986
+
+Depth:  20
+Threshold:  0.01
+Accuracy:  0.7011214041930766
+
+Depth:  10
+Threshold:  0.01
+Accuracy:  0.3364212579229644
+
+Depth:  5
+Threshold:  0.01
+Accuracy:  0.1728425158459288
+
+Depth:  1
+Threshold:  0.01
+Accuracy:  0.17016089712335447
+
+
 
 Results of data exploration not used in code:
 

@@ -30,6 +30,9 @@ def pipeline(csv_name=csv_file):
     df_all_data, var, features = import_data(csv_name)
     if var is not None:
         accuracy_dict = train_data(df_all_data, var, features)
+        return accuracy_dict
+    else:
+        print('Data is not consistent with the assumptions of this code')
 
 def import_data(csv_name):
     '''
@@ -161,7 +164,7 @@ def generate_var_feat(df_all_data, all_cols, corr_dict):
     features = []
     for col in all_cols:
         var_corr = corr_dict[var][col]
-        if abs(var_corr) > 0.01:
+        if abs(var_corr) > 0.01 and col != var:
             #Only adds column to features if its linear correlation with var
             #is within 0.01 of 0
             features.append(col)
@@ -283,9 +286,14 @@ def test_data(model, var_test, feat_test):
         feat_test: the feature columns of the testing data
     '''
     test_predictions = model.predict_proba(feat_test)[:,1]
-    threshold = 0.4
-    calc_threshold = lambda x,y: 0 if x < y else 1
-    test = np.array([calc_threshold(score, threshold) for score in
-        test_predictions])
-    test_acc = accuracy(test, var_test)
-    return test_acc
+
+    thresh_acc_dict = {}
+    test_tresholds = [0.01, 0.1, 0.4, 0.6, 0.8, 1.0]
+    for threshold in test_tresholds:
+        calc_threshold = lambda x,y: 0 if x < y else 1
+        test = np.array([calc_threshold(score, threshold) for score in
+            test_predictions])
+        test_acc = accuracy(test, var_test)
+        thresh_acc_dict[threshold] = test_acc
+
+    return thresh_acc_dict
