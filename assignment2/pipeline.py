@@ -8,12 +8,14 @@ Assignment 2: Machine Learning Pipeline
 
 #Imports
 import pandas as pd
-import sklearn as skl
-from sklearn.model_selection import train_test_split
-import pickle
+from sklearn.cross_validation import train_test_split
 import os.path
+import numpy as np
+import sklearn.tree as tree
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score as accuracy
 
-#Constants for this assignment
+#Constant for this assignment
 csv_file = 'credit-data.csv'
 
 def pipeline(csv_name=csv_file):
@@ -25,23 +27,20 @@ def pipeline(csv_name=csv_file):
             It is set to the name of the csv_file that I will use for this
             assignment but can be anything
     '''
-    train_df, test_df, var, features = import_data(csv_name)
+    df_all_data, var, features = import_data(csv_name)
     if var is not None:
-        model = train_data(train_df, var, features)
-        test_data(model, test_df, var, features)
+        accuracy_dict = train_data(df_all_data, var, features)
 
 def import_data(csv_name):
     '''
     Loads data from a CSV file into a pandas datafram, processes the data,
-    explores the data, generates features and then splits that data into 
-    test and train data
+    explores the data, and generates features and the variable
 
     Inputs:
         csv_name: the pathway to a csv file that we will download data from
 
     Outputs:
-        train_df: a pandas dataframe that has the data we will train on
-        test_df: a pandas dataframe that has the data we will test on
+        df_all_data: a pandas data frame with the cleaned data
         var: a column name that we will want to predict
         features: a list of column names that we will use to predict the 
             variable
@@ -62,9 +61,7 @@ def import_data(csv_name):
     all_cols = df_all_data.columns
     df_all_data = continuous_to_discrete(df_all_data, all_cols)
     #Splits the data into training and testing data
-    train_df, test_df = train_test_split(df_all_data, train_size=0.9,
-        test_size=0.1)
-    return train_df, test_df, var, features
+    return df_all_data, var, features
 
 def explore_data(df_all_data, all_cols):
     '''
@@ -110,24 +107,23 @@ def process_data(df_all_data, all_cols):
     Outputs:
         df_all_data: a pandas dataframe (cleaned)
     '''
-    fill_na_vals = {}
     row_count, col_count = df_all_data.shape
     for col in all_cols:
-        if df_all_data[col].isna().sum() > (row_count / 3):
+        na_vals = df_all_data[col].isna().sum()
+        if na_vals > (row_count / 3):
             #Deletes all cols with more than a third of entries listed as na
             df_all_data = df_all_data.drop([col], axis=1)
-        for col_compare in all_cols:
-            if col_compare != col:
-                if df_all_data[col].equals(df_all_data[col_compare]):
-                    #Deletes cols that are duplicates
-                    df_all_data = df_all_data.drop([col_compare], axis=1)
-        if df_all_data[col].dtype in [int, float]:
-            fill_na_vals[col] = df_all_data[col].mean()
         else:
-            fill_na_vals[col] = None
-
-    #Fills the NA values of columns with column average or None
-    df_all_data.fillna(value=fill_na_vals)
+            for col_compare in all_cols:
+                if col_compare != col:
+                    if df_all_data[col].equals(df_all_data[col_compare]):
+                        #Deletes cols that are duplicates
+                        df_all_data = df_all_data.drop([col_compare], axis=1)
+            if na_vals > 0:
+                #Fills NA values wil column mean
+                col_mean = df_all_data[col].mean()
+                curr_series = df_all_data[col]
+                df_all_data[col] = curr_series.fillna(col_mean)
 
     return df_all_data
 
@@ -241,35 +237,55 @@ def continuous_to_discrete(df_all_data, all_cols):
     return df_all_data
 
 '''
-Notes from sklearn
-
-we must learn from the training set using the fit() method: can only use it once
-or what we do will be overwritten 
-
-then we can predict using the predict() method
-
-you can save a model using joblib (maybe??)
+I wrote much of the followng code using help from lab2
 '''
-def train_data(train_df, var, features):
+
+def train_data(df_all_data, var, features):
     '''
     Takes the training data and creates a model to predict futre data
 
+    We will use a decision tree for the model and we will use different depths
+    to determine the most accurate depth
+
     Inputs:
-        train_df: a pandas dataframe
-        var: the column we want to predict
-        features: the columns we will use to predict var
+        df_all_data: pandas dataframe
+        var: column name of variable
+        features: list of column names of features
 
     Outpts:
-        model: a model for analyzing the data
+        accuracy_dict: a dictionary mapping the decision tree depths to the
+            accuracy of the model
     '''
+    #First, we split data into testing and training
+    var_data = df_all_data[var]
+    feat_data = df_all_data[features]
+    feat_train, feat_test, var_train, var_test = train_test_split(feat_data,
+        var_data, test_size=0.1)
 
-def test_data(model, test_df, var, features):
+    #Now we create our model and test it
+    accuracy_dict = {}
+    model_depths = [1, 5, 10, 20, 50, 100, 200]
+    for dep in model_depths:
+        model = DecisionTreeClassifier(max_depth=dep)
+        model.fit(feat_train, var_train)
+        accuracy = test_data(model, var_test, feat_test)
+        accuracy_dict[dep] = accuracy
+
+    return accuracy_dict
+
+def test_data(model, var_test, feat_test):
     '''
     Tests the model for accuracy
 
     Inputs:
         model: the machine learning model we are testing
-        test_df: a pandas dataframe
-        var: the column we want to predict
-        features: the columns we will use to predict var
+        var_test: the variable column of the testing data
+        feat_test: the feature columns of the testing data
     '''
+    test_predictions = model.predict_proba(feat_test)[:,1]
+    threshold = 0.4
+    calc_threshold = lambda x,y: 0 if x < y else 1
+    test = np.array([calc_threshold(score, threshold) for score in
+        test_predictions])
+    test_acc = accuracy(test, var_test)
+    return test_acc

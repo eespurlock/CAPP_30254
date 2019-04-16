@@ -4,6 +4,37 @@ CAPP 30254
 
 Assignment 2: Writeup for Machine Learning Pipeline
 
+Methodology:
+
+The code begins and ends with the pipeline function, whose sole goal is to bring the code together.
+
+Task 1: I began by loading the data given to us in my import_data function
+
+Task 2: From my import_data function, I called the explore_data function which created two dictionaries. One that holds descriptive information about each column and one that expresses the correlation of each column to every other column.
+
+I used the correlation dictionary later in the data cleaning process to determine if a column belongs as a feature and to break ties between potential variable.
+
+Task 3: I cleaned data in two parts of my code: once before identifying the variable and features and once after identifying the variable and feature.
+
+From the import_data function, I called the process_data function. This function deleted columns with more than 1/3 of the values listed as NA as well as columns that had identical data. The data also filled in any remaining NA values with the mean of the column.
+
+After identifying the variable and features, I called the drop_extra_columns functon (still from the import_data function) to delete column we would not use. I then used the continuous_to_discrete function to turn any continuous variable into a discrete variable. Continuous variables were split into 10 bins.
+
+Task 4: From the import_data function I called the generate_var_feat function to create variables and features. First, it identified the variable as the column with a binary variable that is the most correlated with the rest of the data. It then identified features as those columns that have a correlation coefficient > 0.01 with the variable.
+
+After task 4, we left the import_data function and returned to the pipeline function by returning the pandas dataframe we had created with our data, the variable name and the column names of our features.
+
+If the code for the next two tasks looks familiar, it is because I borrowed heavily from the second lab code.
+
+Task 5: I then went to the train_data function. Here, I split the data into testing and training data. Next, I created decision tree models of various depths to test the accuracy at different depths.
+
+Task 6: For each decision tree depth, I called the test_data function to get the accuracy of each decision tree depth.
+
+Finally, I returned a dictionary mapping decision tree depths to their corresponding accuracy back to the pipeline function.
+
+The Verdict:
+After running my model across various depths and using various thesholds (ranging from 0.01 to 1.0) I got an accuracy score for all models of 1.0. I am highly skeptical of this number considering this implies I am 100% accurate.
+
 Assumptions for this assignment:
 1: We will have a binary variable that our features will predict. 
 2: Our features will have a linear correlation with our variable
