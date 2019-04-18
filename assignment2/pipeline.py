@@ -284,6 +284,9 @@ def test_data(model, var_test, feat_test):
         model: the machine learning model we are testing
         var_test: the variable column of the testing data
         feat_test: the feature columns of the testing data
+    
+    Outputs:
+        thresh_acc_dict: a dictionary mapping threshold to accuracy
     '''
     test_predictions = model.predict_proba(feat_test)[:,1]
 
