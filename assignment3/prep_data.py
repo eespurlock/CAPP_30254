@@ -41,7 +41,7 @@ STUDENTS = 'students_reached'
 DOUBLE = 'eligible_double_your_impact_match'
 POSTED = 'date_posted'
 FUNDED = 'datefullyfunded'
-VAR = 'days_between_posting_and_funding'
+VAR = 'funded_in_60_days'
 
 def import_data(csv_name):
     '''
@@ -94,7 +94,7 @@ def generate_var_feat(df_all_data, all_cols):
         all_cols: column names in our dataframe
 
     Outputs:
-        df_used_data: a pandas dataframe with only the columns we will need
+        df_all_data: a pandas dataframe with only the columns we will need
         variable: name of the variable column
         features: a list of the feature columns
         split: name of the column we will use to cordon off the training and 
@@ -104,14 +104,14 @@ def generate_var_feat(df_all_data, all_cols):
     split = POSTED
     
     #First, we find the variable
-    #This code is written with help from Stack Overflow
-    #https://stackoverflow.com/questions/151199/how-to-calculate-number-of-days-
-    #between-two-given-dates
-    #and
-    #https://stackoverflow.com/questions/33680666/creating-a-new-column-by-using
-    #-lambda-function-on-two-existing-columns
+    
+    df_all_data[VAR] = df_all_data[FUNDED] - df_all_data[POSTED]
+    df_all_data[VAR] = df_all_data[VAR]\
+        .apply(lambda x: 1 if x.days <= 60 else 0)
+    
+    #Now we need to find the features
+    #Need to wait for feedback for this
 
-    df_all_data[VAR] = df_all_data.apply(lambda x: (x[FUNDED] - x[POSTED]).days)
     features = all_cols
     used_cols = features + [variable, split]
     all_cols = df_all_data.columns
@@ -119,7 +119,7 @@ def generate_var_feat(df_all_data, all_cols):
     if len(used_cols) < len(all_cols):
         df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
 
-    return df_used_data, variable, features, split
+    return df_all_data, variable, features, split
 
 def drop_extra_columns(df_all_data, col_list, all_cols):
     '''

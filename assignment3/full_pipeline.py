@@ -41,5 +41,6 @@ def pipeline(csv_name=csv_file):
     #TBD = prep_data.explore_data(df_all_data, all_cols)
     #df_all_data = prep_data.clean_data(df_all_data, all_cols)
 
-    df_used_data, variable, features, split = prep_data.generate_var_feat(
+    #I also need to generate the features in this next function
+    df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols)
