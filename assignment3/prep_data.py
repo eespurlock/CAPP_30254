@@ -84,6 +84,9 @@ def clean_data(df_all_data, all_cols):
     Outputs:
         df_all_data: a cleaned pandas dataframe
     '''
+    #Use the new threshold technique for the dropna function to remove
+    #columns that have more than 1/3 of data unused and all the rows
+    #The have more than 3/4 of data unused
 
 def generate_var_feat(df_all_data, all_cols):
     '''
@@ -111,10 +114,13 @@ def generate_var_feat(df_all_data, all_cols):
     
     #Now we need to find the features
     #Need to wait for feedback for this
-
-    features = all_cols
-    used_cols = features + [variable, split]
+    
     all_cols = df_all_data.columns
+    features = []
+    for col in all_cols:
+        if col not in [variable, split, FUNDED]:
+            features.append(col)
+    used_cols = features + [variable, split]
 
     if len(used_cols) < len(all_cols):
         df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
