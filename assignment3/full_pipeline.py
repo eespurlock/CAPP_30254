@@ -32,5 +32,14 @@ def pipeline(csv_name=csv_file):
     df_all_data = prep_data.import_data(csv_name)
     if df_all_data is None:
         return None
-    else:
-        Print('Imported')
+    all_cols = df_all_data.columns
+
+    #Now I need to explore the data
+    #Then I need to clean up the data
+    #Wait for feedback before I dig into this
+
+    #TBD = prep_data.explore_data(df_all_data, all_cols)
+    #df_all_data = prep_data.clean_data(df_all_data, all_cols)
+
+    df_used_data, variable, features, split = prep_data.generate_var_feat(
+        df_all_data, all_cols)
