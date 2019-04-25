@@ -106,8 +106,7 @@ def generate_var_feat(df_all_data, all_cols):
     variable = VAR
     split = POSTED
     
-    #First, we find the variable
-    
+    #First, we create the variable: 0 of finded within 60 days and 1 if not
     df_all_data[VAR] = df_all_data[FUNDED] - df_all_data[POSTED]
     df_all_data[VAR] = df_all_data[VAR]\
         .apply(lambda x: 1 if x.days <= 60 else 0)
@@ -118,7 +117,7 @@ def generate_var_feat(df_all_data, all_cols):
     all_cols = df_all_data.columns
     features = []
     for col in all_cols:
-        if col not in [variable, split, FUNDED]:
+        if col not in [variable, FUNDED]:
             features.append(col)
     used_cols = features + [variable, split]
 
