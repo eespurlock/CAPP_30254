@@ -28,12 +28,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
 #sklearn metrics
 from sklearn.metrics import accuracy_score as accuracy,\
     balanced_accuracy_score as balanced,\
-    average_precision as avg_pre,\
-    brier_score_loss as brier,\
-    neg_log_loss as nll,\
-    precision,\
-    recall,\
-    roc_auc
+    log_loss, precision_score, recall_score, roc_auc_score
 
 #Defined constants for this assignment
 REGRESSION = "Logistic Regression"
@@ -91,10 +86,12 @@ def training_models(train_variable, train_features, test_variable,\
     models_dict[BAGGING] = bagging_modeling(len(train_features.columns))
     
     for name, model_param in models_dict.items():
-    	for param, model_empty in model_param.items():
-            model = model_empty.fit(train_features, train_variable)
-            models_dict[name][param] = test_eval_models(model, test_variable,\
+        for param, model_unfit in model_param.items():
+            model = model_unfit.fit(train_features, train_variable)
+            models_dict[name][param] = test_models(model, test_variable,\
                 test_features)
+
+    return models_dict
 
 def regression_modeling():
     '''
@@ -162,8 +159,8 @@ def forest_modeling():
         for depth in MAX_DEPTH:
             for leaf in MAX_LEAF_NODES:
                 param = "Number of Trees: " + str(trees) +\
-                    " Max Depth of Trees: " + str(depth) +\
-                    " Max Leaf Nodes: " + str(leaf)
+                    ", Max Depth of Trees: " + str(depth) +\
+                    ", Max Leaf Nodes: " + str(leaf)
                 tree_param = "Max Depth of Trees: " + str(depth)
                 forest_dict[param] = RandomForestClassifier(n_estimators=trees,\
                     max_depth=depth, max_leaf_nodes=leaf)
@@ -185,7 +182,7 @@ def ada_boost_modeling():
     LEARNING_RATE = [0.5, 1.0, 1.5, 2.0, 2.5]
     for n in N_ESTIMATORS:
         for rate in LEARNING_RATE:
-            param = "Estimators: " + str(n) + " Learning Rate: " + str(rate)
+            param = "Estimators: " + str(n) + ", Learning Rate: " + str(rate)
             ada_dict[param] = AdaBoostingClassifier(n_estimators=n,\
                 learning_rate=rate)
     return ada_dict
@@ -239,12 +236,11 @@ def bagging_modeling(num_feat):
                 bag_dict[param] = BaggingClassifier(n_estimators=n,\
                     max_samples=sample, max_features=feat)
 
-def test_eval_models(model, test_variable, test_features):
+def test_models(model, test_var, test_features):
     '''
     Tests and evaluates models on testing data
 
     Inputs:
-        test: a pandas dataframe with testing data
         model: a trained model we want to test
         variable: column name of the variable
         features: list of column names of the features
@@ -255,9 +251,30 @@ def test_eval_models(model, test_variable, test_features):
     THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
 
     eval_dict = {}
-    test_predictions = model.predict_proba(test_features)[:,1]
-    for thresh in THRESHOLDS:	
+    probabilities = model.predict_proba(test_features)[:,1]
+    key = "No Threshold"
+    roc_auc = roc_auc_score(y_true=test_var, y_score=probabilities)
+    eval_dict[key] = {ROC_AUC: roc_auc}
+    for thresh in THRESHOLDS:    
         calc_threshold = lambda x,y: 0 if x < y else 1
-        test = np.array([calc_threshold(score, threshold) for score in
-            test_predictions])
-        #Go to the different evaluation metrics
+        predicted = np.array([calc_threshold(score, threshold) for score in
+            probabilities])
+        key = "Threshold: " + str(thresh)
+        eval_dict[key] = evaluate_models(test_var, predicted)
+    return eval_dict
+
+def evaluate_models(true, predicted):
+    '''
+    Evaluates models on multiple evaluations metrics
+
+    Inouts:
+
+    Outputs:
+    '''
+    eval_dict = {}
+    eval_dict[ACCURACY] = accuracy(y_true=true, y_pred=predicted)
+    eval_dict[BAL_ACC] = balanced(y_true=true, y_pred=predicted, adjusted=True)
+    eval_dict[LOG] = log_loss(y_true=true, y_pred=predicted)
+    eval_dict[PRECISION] = precision_score(y_true=true, y_pred=predicted)
+    eval_dict[RECALL] = recall_score(y_true=true, y_pred=predicted)
+    return eval_dict

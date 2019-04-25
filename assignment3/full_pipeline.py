@@ -49,14 +49,11 @@ def pipeline(csv_name=csv_file):
         df_all_data, all_cols)
 
     test_train_dict = modeling.split_by_date(df_all_data, split)
-    models_eval = loop_through_dates(test_train_dict, variable, features)
+    models_eval = loop_through_dates(test_train_dict)
     
-    df_evaluated_models = print_models_eval(models_eval)
+    return table_models_eval(models_eval)
 
-    #I need to turn this into a table
-    return df_evaluated_models
-
-def loop_through_dates(test_train_dict, variable, features):
+def loop_through_dates(test_train_dict):
     '''
     Loops through all the dates for testing and training so we can create models
     on all of them and evaluate them
@@ -69,19 +66,15 @@ def loop_through_dates(test_train_dict, variable, features):
     '''
     models_eval = {}
     for dates, data in test_train_dict.items():
-        train, test = data
-        models_dict = modeling.training_models(train, variable, features)
-        for model_name, model_params in models_dict.items():
-            this_model_dict = models_eval.get(model_name, {})
-            for parameter, model in model_params.items():
-                this_param_dict = this_model_dict.get(parameter, {})
-                eval_dict = test_eval_models(test, model, variable, features)
-                this_param_dict[dates] = eval_dict
+        train_variable, train_features, test_variable, test_features = data
+        models_eval[dates] = modeling.training_models(train_variable,\
+        	train_features, test_variable, test_features)
+    return models_eval
 
-def print_models_eval(models_eval):
+def table_models_eval(models_eval):
     '''
-    Loops through the dictionary of models we have created, prints out the
-    results and puts those results into a table
+    Loops through the dictionary of models we have created 
+    and puts those results into a pandas dataframe
 
     Inputs:
         models_eval: all the models we have created and the evaluation for them
@@ -89,8 +82,8 @@ def print_models_eval(models_eval):
         df_evaluated_models: a dataframe listing the models, their evaluation
             metric and how well those models did on that metric
     '''
-    col_lst = ['Date', 'Model Name', 'Parameter', 'Evaluation', 'Threshold',
-        'Output']
+    col_lst = ['Date', 'Model Name', 'Parameters', 'Evaluation Name',
+        'Threshold', 'Result']
     model_lst = []
     param_lst = []
     date_lst = []
@@ -98,21 +91,16 @@ def print_models_eval(models_eval):
     thres_lst = []
     out_lst = []
 
-    for model_name, param_dict in models_eval.items():
-        print(model_name)
-        model_lst.append(model_name)
-        for parameter, date_dict in param_dict.items():
-            print(parameter)
-            param_lst.append(parameter)
-            for date, eval_dict in date_dict.items():
-                print(date)
-                date_lst.append(date)
-                for eval_name, eval_outcome_dict in eval_dict.items():
-                    print(eval_name)
-                    eval_lst.append(eval_name)
-                    for threshold, outcome in eval_outcome_dict.items():
-                        print(threshold, ': ', outcome)
-                        thres_lst.append(threshold)
+    for dates, model_dict in models_eval.items():
+        date_lst.append(dates)
+        for model, param_dict in model_dict.items():
+            model_lst.append(model)
+            for param, eval_dict in param_dict.items():
+                param_lst.append(param)
+                for threshold, eval_outcome_dict in eval_dict.items():
+                    thres_lst.append(threshold)
+                    for eval_name, outcome in eval_outcome_dict.items():
+                        eval_lst.append(eval_name)
                         out_lst.append(outcome)
 
     df_evaluated_models = pd.Dataframe(np.array(date_lst, model_lst, param_lst, 
