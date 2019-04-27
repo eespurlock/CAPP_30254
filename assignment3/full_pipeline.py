@@ -37,17 +37,14 @@ def pipeline(csv_name=csv_file):
         return None
     all_cols = df_all_data.columns
 
-    #Now I need to explore the data
-    #Then I need to clean up the data
-    #Wait for feedback before I dig into this
+    ###!!!Now I need to explore the data!!!###
+    prep_data.explore_data(df_all_data, all_cols)
+    df_all_data = prep_data.clean_data(df_all_data, all_cols)
 
-    #TBD = prep_data.explore_data(df_all_data, all_cols)
-    #df_all_data = prep_data.clean_data(df_all_data, all_cols)
-
-    #I also need to generate the features in this next function
     df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols)
 
+    ###!!!Now I need to split the data!!!###
     test_train_dict = modeling.split_by_date(df_all_data, split)
     models_eval = loop_through_dates(test_train_dict)
     
@@ -106,4 +103,5 @@ def table_models_eval(models_eval):
     df_evaluated_models = pd.Dataframe(np.array(date_lst, model_lst, param_lst, 
         eval_dict, thres_lst, out_lst), columns=col_lst)
 
+    df_evaluated_models.to_csv("Modeling_Projects_2012_2013")
     return df_evaluated_models

@@ -68,9 +68,6 @@ def explore_data(df_all_data, all_cols):
     Inputs:
         df_all_data: pandas dataframe with our data
         all_cols: column names in our dataframe
-
-    Outputs:
-        !!!TBD!!!
     '''
 
 def clean_data(df_all_data, all_cols):
@@ -84,9 +81,19 @@ def clean_data(df_all_data, all_cols):
     Outputs:
         df_all_data: a cleaned pandas dataframe
     '''
-    #Use the new threshold technique for the dropna function to remove
-    #columns that have more than 1/3 of data unused and all the rows
-    #The have more than 3/4 of data unused
+    for col in all_cols:
+        df_all_data[col] = df_all_data[col].fillna('None')
+
+    all_rows = df_all_data.shape[0]
+    for col in [LAT, LONG, SUBJECT, AREA, SUBJECT_2, AREA_2, RESOURCE, GRADE,
+        PRICE, STUDENTS, DOUBLE]:
+        num_entries = df_all_data[col].value_counts().size
+        ratio = num_entries / all_rows
+        if ratio > 0.60 and ratio != 1.0:
+            curr_series = df_all_data[col]
+            df_all_data[col] = pd.cut(curr_series, bins=10, labels=False,
+                include_lowest=True)
+    return df_all_data
 
 def generate_var_feat(df_all_data, all_cols):
     '''
@@ -111,18 +118,21 @@ def generate_var_feat(df_all_data, all_cols):
     df_all_data[VAR] = df_all_data[VAR]\
         .apply(lambda x: 1 if x.days <= 60 else 0)
     
-    #Now we need to find the features
-    #Need to wait for feedback for this
-    
+    #Now we need to find the features    
     all_cols = df_all_data.columns
     features = []
-    for col in all_cols:
-        if col not in [variable, FUNDED]:
+    var_series = df_all_data[variable]
+    for col in [TEACH_ID, SCHOOL_ID1, SCHOOL_ID2, LAT, LONG, CITY, STATE, 
+        DISTRICT, COUNTY, CHARTER, MAGNET, PREFIX, SUBJECT, SUBJECT_2, AREA_2,
+        RESOURCE, POVERTY, GRADE, PRICE, STUDENTS, DOUBLE]:
+        
+        col_series = df_all_data[col]
+        correlation = col_series.corr(var_series, method='pearson')
+        if abs(correlation) > 0.01:
             features.append(col)
+    
     used_cols = features + [variable, split]
-
-    if len(used_cols) < len(all_cols):
-        df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
+    df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
 
     return df_all_data, variable, features, split
 
