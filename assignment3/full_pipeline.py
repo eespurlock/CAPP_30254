@@ -44,29 +44,9 @@ def pipeline(csv_name=csv_file):
     df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols)
 
-    ###!!!Now I need to split the data!!!###
-    test_train_dict = modeling.split_by_date(df_all_data, split)
-    models_eval = loop_through_dates(test_train_dict)
+    models_dict = modeling.split_by_date(df_all_data, split, variable, features)
     
-    return table_models_eval(models_eval)
-
-def loop_through_dates(test_train_dict):
-    '''
-    Loops through all the dates for testing and training so we can create models
-    on all of them and evaluate them
-
-    Inputs:
-        test_train_dict: a dictionary with the training and testing data
-
-    Outputs:
-        models_eval: a dictionary with the different models and their evaluation
-    '''
-    models_eval = {}
-    for dates, data in test_train_dict.items():
-        train_variable, train_features, test_variable, test_features = data
-        models_eval[dates] = modeling.training_models(train_variable,\
-        	train_features, test_variable, test_features)
-    return models_eval
+    return table_models_eval(models_dict)
 
 def table_models_eval(models_eval):
     '''
@@ -89,14 +69,14 @@ def table_models_eval(models_eval):
     out_lst = []
 
     for dates, model_dict in models_eval.items():
-        date_lst.append(dates)
         for model, param_dict in model_dict.items():
-            model_lst.append(model)
             for param, eval_dict in param_dict.items():
-                param_lst.append(param)
                 for threshold, eval_outcome_dict in eval_dict.items():
-                    thres_lst.append(threshold)
                     for eval_name, outcome in eval_outcome_dict.items():
+                        date_lst.append(dates)
+                        model_lst.append(model)
+                        param_lst.append(param)
+                        thres_lst.append(threshold)
                         eval_lst.append(eval_name)
                         out_lst.append(outcome)
 

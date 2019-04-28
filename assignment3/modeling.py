@@ -23,11 +23,10 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import NuSVC
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
-    GradientBoostingClassifier, AdaBoostingClassifier, BaggingClassifier
+    GradientBoostingClassifier, AdaBoostClassifier, BaggingClassifier
 
 #sklearn metrics
 from sklearn.metrics import accuracy_score as accuracy,\
-    balanced_accuracy_score as balanced,\
     log_loss, precision_score, recall_score, roc_auc_score
 
 #Defined constants for this assignment
@@ -42,7 +41,6 @@ ADA_BOOSTING = "Ada Boosting"
 BAGGING = "Bagging"
 
 ACCURACY = "Accuracy"
-BAL_ACC = "Balanced Accuracy"
 AVG_PREC = "Average Precision"
 BRIER = "Brier Score Loss"
 LOG = "Log Loss"
@@ -50,7 +48,7 @@ PRECISION = "Precision"
 RECALL = "Recall"
 ROC_AUC = "ROC_AUC"
 
-def split_by_date(df_all_data, split):
+def split_by_date(df_all_data, split, variable, features):
     '''
     Splits the data by date listed in the split column
 
@@ -62,7 +60,43 @@ def split_by_date(df_all_data, split):
         test_train_dict: a dictionary mapping a date range to a tuple of pandas
             dataframes with the training and testing data
     '''
-    test_train_dict = {}
+    models_dict = {}
+    time_series = df_all_data[split]
+    final_date = time_series.max()
+
+    #Initialize test and train dates
+    end_train = time_series.min()
+    begin_test = end_train
+    end_test = begin_test
+
+    while end_test < final_date:
+        #The training data ends 180 days after than the end of the last train
+        end_train = end_train + timedelta(days=180)
+        begin_test = end_train + timedelta(days=1)
+        end_test = begin_test + timedelta(days=180)
+        dates = str(begin_test) + " - " + str(end_test)
+        
+        #Now we create the training and testing data
+        train_filter = df_all_data[split] <= end_train
+        train_data = df_all_data[train_filter]
+        test_filter =\
+            (df_all_data[split] <= end_test) &\
+            (df_all_data[split] >= begin_test)
+        test_data = df_all_data[test_filter]
+
+        #Now we have to create the variable and features data
+        train_variable = train_data[variable]
+        train_features = train_data[features]
+        test_variable = test_data[variable]
+        test_features = test_data[features]
+
+        #Now save all of this to the dictionary
+        #By the end of this assignent, I suspect you will tell me I rely too
+        #much on dictionaries
+        models_dict[dates] = training_models(train_variable, train_features,\
+            test_variable, test_features)
+
+    return models_dict
 
 def training_models(train_variable, train_features, test_variable,\
     test_features):
@@ -77,7 +111,7 @@ def training_models(train_variable, train_features, test_variable,\
     '''
     models_dict = {}
     models_dict[REGRESSION] = regression_modeling()
-    models_dict[KNN] = knn_modelig()
+    models_dict[KNN] = knn_modeling()
     models_dict[FOREST], models_dict[EXTRA], models_dict[TREE] =\
         forest_modeling()
     models_dict[SVM] = svm_modeling()
@@ -183,7 +217,7 @@ def ada_boost_modeling():
     for n in N_ESTIMATORS:
         for rate in LEARNING_RATE:
             param = "Estimators: " + str(n) + ", Learning Rate: " + str(rate)
-            ada_dict[param] = AdaBoostingClassifier(n_estimators=n,\
+            ada_dict[param] = AdaBoostClassifier(n_estimators=n,\
                 learning_rate=rate)
     return ada_dict
 
@@ -273,7 +307,6 @@ def evaluate_models(true, predicted):
     '''
     eval_dict = {}
     eval_dict[ACCURACY] = accuracy(y_true=true, y_pred=predicted)
-    eval_dict[BAL_ACC] = balanced(y_true=true, y_pred=predicted, adjusted=True)
     eval_dict[LOG] = log_loss(y_true=true, y_pred=predicted)
     eval_dict[PRECISION] = precision_score(y_true=true, y_pred=predicted)
     eval_dict[RECALL] = recall_score(y_true=true, y_pred=predicted)
