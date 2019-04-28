@@ -36,7 +36,6 @@ TREE = "Decision Trees"
 SVM = "Support Vector Machines"
 FOREST = "Random Forests"
 EXTRA = "Extra Trees"
-GRAD_BOOSTING = "Gradient Boosting"
 ADA_BOOSTING = "Ada Boosting"
 BAGGING = "Bagging"
 
@@ -115,12 +114,12 @@ def training_models(train_variable, train_features, test_variable,\
     models_dict[FOREST], models_dict[EXTRA], models_dict[TREE] =\
         forest_modeling()
     models_dict[SVM] = svm_modeling()
-    models_dict[GRAD_BOOSTING] = grad_boost_modeling()
     models_dict[ADA_BOOSTING] = ada_boost_modeling()
-    models_dict[BAGGING] = bagging_modeling(len(train_features.columns))
+    models_dict[BAGGING] = bagging_modeling()
     
     for name, model_param in models_dict.items():
         for param, model_unfit in model_param.items():
+            print(name, param)
             model = model_unfit.fit(train_features, train_variable)
             models_dict[name][param] = test_models(model, test_variable,\
                 test_features)
@@ -186,21 +185,21 @@ def forest_modeling():
     forest_dict = {}
     extra_dict = {}
     tree_dict = {}
-    NUM_TREES = [5, 10, 20, 50, 100, 200]
+    NUM_TREES = [5, 20, 50, 200]
     MAX_DEPTH = [1, 5, 10, 20, 50, 100, 200]
-    MAX_LEAF_NODES = [10, 50, 100, 200, 300, None]
-    for trees in NUM_TREES:
-        for depth in MAX_DEPTH:
+    MAX_LEAF_NODES = [10, 100, None]
+    for depth in MAX_DEPTH:
+        tree_param = "Max Depth of Trees: " + str(depth)
+        tree_dict[tree_param] = DecisionTreeClassifier(max_depth=depth)
+        for trees in NUM_TREES:
             for leaf in MAX_LEAF_NODES:
                 param = "Number of Trees: " + str(trees) +\
                     ", Max Depth of Trees: " + str(depth) +\
                     ", Max Leaf Nodes: " + str(leaf)
-                tree_param = "Max Depth of Trees: " + str(depth)
                 forest_dict[param] = RandomForestClassifier(n_estimators=trees,\
                     max_depth=depth, max_leaf_nodes=leaf)
                 extra_dict[param] = ExtraTreesClassifier(n_estimators=trees,\
                     max_depth=depth, max_leaf_nodes=leaf)
-                tree_dict[tree_param] = DecisionTreeClassifier(max_depth=depth)
     return forest_dict, extra_dict, tree_dict
 
 def ada_boost_modeling():
@@ -213,7 +212,7 @@ def ada_boost_modeling():
     '''
     ada_dict = {}
     N_ESTIMATORS = [10, 30, 50, 100, 200]
-    LEARNING_RATE = [0.5, 1.0, 1.5, 2.0, 2.5]
+    LEARNING_RATE = [0.5, 1.0, 2.0]
     for n in N_ESTIMATORS:
         for rate in LEARNING_RATE:
             param = "Estimators: " + str(n) + ", Learning Rate: " + str(rate)
@@ -221,33 +220,7 @@ def ada_boost_modeling():
                 learning_rate=rate)
     return ada_dict
 
-def grad_boost_modeling():
-    '''
-    Creates multiple Gradient Boosting models
-
-    Inputs:
-
-    Outputs:
-    '''
-    grad_dict = {}
-    LEARNING_RATE = [0.1, 0.5, 1.0, 1.5, 2.0]
-    N_ESTIMATORS = [20, 50, 100, 150, 200]
-    SUBSAMPLE = [0.1, 0.5, 1.0, 1.5, 2.0, 2.5]
-    MAX_DEPTH = [1, 5, 10, 20, 50, 100, 200]
-    MAX_LEAF_NODES = [10, 50, 100, 200, 300, None]
-    for r in LEARNING_RATE:
-        for n in N_ESTIMATORS:
-            for s in SUBSAMPLE:
-                for d in MAX_DEPTH:
-                    for l in MAX_LEAF_NODES:
-                        param = "Learning Rate: " + str(r) + ", Estimators: " +\
-                            str(n) + ", Subsample: " + str(s) + ", Depth: " +\
-                            str(d) + ", Leaf Nodes: " + str(l)
-                        grad_dict[param] = GradientBoostingClassifier(\
-                            learning_rate=r, n_estimators=n, subsample=s,\
-                            max_depth=d, max_leaf_nodes=l)
-
-def bagging_modeling(num_feat):
+def bagging_modeling():
     '''
     Creates multiple bagging models
 
@@ -259,16 +232,14 @@ def bagging_modeling(num_feat):
     bag_dict = {}
 
     N_ESTIMATORS = [5, 10, 20, 30, 50]
-    MAX_SAMPLES = [1, 5, 10, 20, 50, 100, 500]
-    MAX_FEATURES = [1, 2, 5, 10, 20] + [num_feat]
+    MAX_SAMPLES = [1, 10, 50, 100, 500]
 
     for n in N_ESTIMATORS:
         for sample in MAX_SAMPLES:
-            for feat in MAX_FEATURES:
-                param = "Estimators: " + str(n) + ", Samples: " + str(sample)\
-                    + ", Features: " + str(feat)
-                bag_dict[param] = BaggingClassifier(n_estimators=n,\
-                    max_samples=sample, max_features=feat)
+            param = "Estimators: " + str(n) + ", Samples: " + str(sample)
+            bag_dict[param] = BaggingClassifier(n_estimators=n,\
+                max_samples=sample)
+    return bag_dict
 
 def test_models(model, test_var, test_features):
     '''
@@ -291,7 +262,7 @@ def test_models(model, test_var, test_features):
     eval_dict[key] = {ROC_AUC: roc_auc}
     for thresh in THRESHOLDS:    
         calc_threshold = lambda x,y: 0 if x < y else 1
-        predicted = np.array([calc_threshold(score, threshold) for score in
+        predicted = np.array([calc_threshold(score, thresh) for score in
             probabilities])
         key = "Threshold: " + str(thresh)
         eval_dict[key] = evaluate_models(test_var, predicted)

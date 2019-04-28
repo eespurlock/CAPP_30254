@@ -122,14 +122,19 @@ def generate_var_feat(df_all_data, all_cols):
     all_cols = df_all_data.columns
     features = []
     var_series = df_all_data[variable]
-    for col in [TEACH_ID, SCHOOL_ID1, SCHOOL_ID2, LAT, LONG, CITY, STATE, 
-        DISTRICT, COUNTY, CHARTER, MAGNET, PREFIX, SUBJECT, SUBJECT_2, AREA_2,
-        RESOURCE, POVERTY, GRADE, PRICE, STUDENTS, DOUBLE]:
+    possible_features = [TEACH_ID, SCHOOL_ID1, SCHOOL_ID2, LAT, LONG, CITY,
+        STATE, DISTRICT, COUNTY, CHARTER, MAGNET, PREFIX, SUBJECT, SUBJECT_2,
+        AREA_2, RESOURCE, POVERTY, GRADE, PRICE, STUDENTS, DOUBLE]
 
-        features.append(col)
+    for col in possible_features:
+        ser = df_all_data[col].astype(dtype='float64', errors='ignore')
+        if ser.dtype == 'float64':
+            df_all_data[col] = ser
+            features.append(col)
     
     used_cols = features + [variable, split]
     df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
+    df_all_data.fillna(0.0, inplace=True)
 
     return df_all_data, variable, features, split
 
