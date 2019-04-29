@@ -129,6 +129,8 @@ def generate_var_feat(df_all_data, all_cols):
     for col in possible_features:
         ser = df_all_data[col].astype(dtype='float64', errors='ignore')
         if ser.dtype == 'float64':
+            col_mean = ser.mean()
+            ser = ser.fillna(col_mean)
             df_all_data[col] = ser
             features.append(col)
     
