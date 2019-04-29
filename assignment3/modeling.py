@@ -21,7 +21,7 @@ import sklearn.tree as tree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import NuSVC
+from sklearn.svm import svc
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
     GradientBoostingClassifier, AdaBoostClassifier, BaggingClassifier
 
@@ -89,7 +89,7 @@ def split_by_date(df_all_data, split, variable, features):
         test_variable = test_data[variable]
         test_features = test_data[features]
 
-        #Now save all of this to the dictionary
+        #Now we create the models dictionary
         #By the end of this assignent, I suspect you will tell me I rely too
         #much on dictionaries
         models_dict[dates] = training_models(train_variable, train_features,\
@@ -103,17 +103,15 @@ def training_models(train_variable, train_features, test_variable,\
     Trains models on training data
 
     Inputs:
-        
 
     Outputs:
         models_dict: a dictionary of models
     '''
     models_dict = {}
-    models_dict[REGRESSION] = regression_modeling()
+    models_dict[REGRESSION], models_dict[SVM] = regression_svm_modeling()
     models_dict[KNN] = knn_modeling()
     models_dict[FOREST], models_dict[EXTRA], models_dict[TREE] =\
         forest_modeling()
-    models_dict[SVM] = svm_modeling()
     models_dict[ADA_BOOSTING] = ada_boost_modeling()
     models_dict[BAGGING] = bagging_modeling()
     
@@ -126,7 +124,7 @@ def training_models(train_variable, train_features, test_variable,\
 
     return models_dict
 
-def regression_modeling():
+def regression_svm_modeling():
     '''
     Creates multiple regression models
 
@@ -135,11 +133,13 @@ def regression_modeling():
     Outputs:
     '''
     reg_dict = {}
+    svm_dict = {}
     C_VALS = [1.0, 1.2, 1.5, 2.0, 2.5, 5]
     for c in C_VALS:
-        param = "Regulatization Strength: " + str(c)
+        param = "C value: " + str(c)
         reg_dict[param] = LogisticRegression(C=c)
-    return reg_dict
+        svm_dict[param] = svc(C=c)
+    return reg_dict, svm_dict
 
 def knn_modeling():
     '''
@@ -155,21 +155,6 @@ def knn_modeling():
         param = "K Neighbors: " + str(k)
         knn_dict[param] = KNeighborsClassifier(n_neighbors=k)
     return knn_dict
-
-def svm_modeling():
-    '''
-    Creates multiple support vector machine models
-
-    Inputs:
-
-    Outputs:
-    '''
-    svm_dict = {}
-    NU = [0.1, 0.3, 0.5, 0.7, 0.9, 1.0]
-    for n in NU:
-        param = "Bounds on errors / support vectors: " + str(n)
-        svm_dict[param] = NuSVC(nu=n, gamma='scale')
-    return svm_dict
 
 def forest_modeling():
     '''

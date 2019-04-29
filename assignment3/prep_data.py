@@ -131,12 +131,13 @@ def generate_var_feat(df_all_data, all_cols):
         if ser.dtype == 'float64':
             col_mean = ser.mean()
             ser = ser.fillna(col_mean)
-            df_all_data[col] = ser
-            features.append(col)
+            correlation = var_series.corr(ser, method='pearson')
+            if abs(correlation) > 0.01:
+                df_all_data[col] = ser
+                features.append(col)
     
     used_cols = features + [variable, split]
     df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
-    df_all_data.fillna(0.0, inplace=True)
 
     return df_all_data, variable, features, split
 
