@@ -21,7 +21,7 @@ import sklearn.tree as tree
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import svc
+from sklearn.svm import LinearSVC
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
     GradientBoostingClassifier, AdaBoostClassifier, BaggingClassifier
 
@@ -120,7 +120,7 @@ def training_models(train_variable, train_features, test_variable,\
             print(name, param)
             model = model_unfit.fit(train_features, train_variable)
             models_dict[name][param] = test_models(model, test_variable,\
-                test_features)
+                test_features, name)
 
     return models_dict
 
@@ -138,7 +138,7 @@ def regression_svm_modeling():
     for c in C_VALS:
         param = "C value: " + str(c)
         reg_dict[param] = LogisticRegression(C=c)
-        svm_dict[param] = svc(C=c)
+        svm_dict[param] = LinearSVC(C=c)
     return reg_dict, svm_dict
 
 def knn_modeling():
@@ -226,7 +226,7 @@ def bagging_modeling():
                 max_samples=sample)
     return bag_dict
 
-def test_models(model, test_var, test_features):
+def test_models(model, test_var, test_features, name):
     '''
     Tests and evaluates models on testing data
 
@@ -241,7 +241,10 @@ def test_models(model, test_var, test_features):
     THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
 
     eval_dict = {}
-    probabilities = model.predict_proba(test_features)[:,1]
+    if name == SVM:
+        probabilities = model.decision_function(test_features)
+    else:
+        probabilities = model.predict_proba(test_features)[:,1]
     key = "No Threshold"
     roc_auc = roc_auc_score(y_true=test_var, y_score=probabilities)
     eval_dict[key] = {ROC_AUC: roc_auc}
