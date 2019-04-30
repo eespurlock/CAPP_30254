@@ -7,14 +7,12 @@ Assignment 3: Update the Pipeline
 
 PY file #3: creating and testing models
 '''
-
-#Need to import more from sklearn
-
 #Imports
-#Pandas and numpy
+#Pandas, numpy and marplot
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, relativedelta
+import matplotlib.pyplot as plt
 
 #sklearn models
 import sklearn.tree as tree
@@ -27,9 +25,12 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
 
 #sklearn metrics
 from sklearn.metrics import accuracy_score as accuracy,\
-    precision_score, recall_score, roc_auc_score
+    precision_score, recall_score, roc_auc_score, f1_score,\
+    precision_recall_curve
+from sklearn.utils.fixes import signature
 
 #Defined constants for this assignment
+#models we will use
 REGRESSION = "Logistic Regression"
 KNN = "K Nearest Neighbors"
 TREE = "Decision Trees"
@@ -39,10 +40,12 @@ EXTRA = "Extra Trees"
 ADA_BOOSTING = "Ada Boosting"
 BAGGING = "Bagging"
 
+#evaluation metrics we will use
 ACCURACY = "Accuracy"
 PRECISION = "Precision"
 RECALL = "Recall"
 ROC_AUC = "ROC_AUC"
+F1 = "F1"
 
 def split_by_date(df_all_data, split, variable, features):
     '''
@@ -51,30 +54,32 @@ def split_by_date(df_all_data, split, variable, features):
     Inputs:
         df_all_data: a pandas dataframe
         split: the name of the column we are splitting on
+        variable: the name of the variable column
+        features: list of the names of the feature columns
 
     Outputs:
-        test_train_dict: a dictionary mapping a date range to a tuple of pandas
-            dataframes with the training and testing data
+        models_dict: a dictionary with all information about all models for all
+            dates 
     '''
     models_dict = {}
     time_series = df_all_data[split]
     final_date = time_series.max()
 
     #Initialize test and train dates
-    end_train = time_series.min()
+    end_train = time_series.min() - timedelta(days=1)
     begin_train = 0
     begin_test = 0
     end_test = end_train
 
     while end_test < final_date:
-        #The training data ends 180 days after ending of the last train
-        #the training data begins the day of the ending of train data
-        begin_train = end_train
-        end_train = end_train + timedelta(days=180)
+        #The training data ends 6 months after the beginning of the train
+        #the training data begins the day after the ending of train data
+        begin_train = end_train + timedelta(days=1)
+        end_train = begin_train + relativedelta(months=+6)
         #Testing data begins the day after training data ends
-        #Testing data ends 180 days after it begins
+        #Testing data ends 6 months after it begins
         begin_test = end_train + timedelta(days=1)
-        end_test = begin_test + timedelta(days=180)
+        end_test = begin_test + relativedelta(months=+6)
         dates = str(begin_test) + " - " + str(end_test)
         
         #Now we create the training and testing data
@@ -96,7 +101,6 @@ def split_by_date(df_all_data, split, variable, features):
         #Now we create the models dictionary
         #By the end of this assignent, I suspect you will tell me I rely too
         #much on dictionaries
-        print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
 
@@ -105,14 +109,20 @@ def split_by_date(df_all_data, split, variable, features):
 def training_models(train_variable, train_features, test_variable,\
     test_features):
     '''
-    Trains models on training data
+    Trains all models on training data
 
     Inputs:
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
-        models_dict: a dictionary of models
+        models_dict: a dictionary with all information about all models
     '''
     models_dict = {}
+    
+    #Set the value for all model types
     models_dict[REGRESSION], models_dict[SVM] =\
         regression_svm_modeling(train_variable, train_features, test_variable,\
         test_features)
@@ -134,19 +144,23 @@ def regression_svm_modeling(train_variable, train_features, test_variable,\
     Creates multiple regression models
 
     Inputs:
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
+        reg_dict: a dictionary with all information about all regression models
+        svm_dict: a dictionary with all information about all svm models
     '''
     reg_dict = {}
     svm_dict = {}
     C_VALS = [1.0, 1.2, 1.5, 2.0, 2.5]
     for c in C_VALS:
         param = "C value: " + str(c)
-        print(REGRESSION, param)
         model_unfit = LogisticRegression(C=c)
         reg_dict[param] = test_models(model_unfit, False, train_variable,\
             train_features, test_variable, test_features)
-        print(SVM, param)
         model_unfit = LinearSVC(C=c)
         svm_dict[param] = test_models(model_unfit, True, train_variable,\
             train_features, test_variable, test_features)
@@ -158,14 +172,19 @@ def knn_modeling(train_variable, train_features, test_variable,\
     Creates multiple nearest neighbors models
 
     Inputs:
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
+        knn_dict: a dictionary with all information about all nearest neighbors
+            models
     '''
     knn_dict = {}
     NEIGHBORS = [1, 5, 10, 20, 50, 100]
     for k in NEIGHBORS:
         param = "K Neighbors: " + str(k)
-        print(KNN, param)
         model_unfit = KNeighborsClassifier(n_neighbors=k)
         knn_dict[param] = test_models(model_unfit, False, train_variable,\
             train_features, test_variable, test_features)
@@ -174,14 +193,25 @@ def knn_modeling(train_variable, train_features, test_variable,\
 def forest_modeling(train_variable, train_features, test_variable,\
     test_features):
     '''
-    Creates multiple random forest models and multiple extra trees models
+    Creates multiple decision tree models, random forest models and extra trees
+        models
     (Random forests and extra trees take the same parameters, which is why
     we are putting them together. We will use the same depth for decision
     trees which is why this is with them)
 
     Inputs:
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
+        forest_dict: a dictionary with all information about all random forest
+            models
+        extra_dict: a dictionary with all information about all extra tree
+            models
+        tree_dict: a dictionary with all information about all decision tree
+            models
     '''
     forest_dict = {}
     extra_dict = {}
@@ -190,19 +220,16 @@ def forest_modeling(train_variable, train_features, test_variable,\
     MAX_DEPTH = [1, 5, 20, 50, 100, 200]
     for depth in MAX_DEPTH:
         tree_param = "Max Depth of Trees: " + str(depth)
-        print(TREE, tree_param)
         model_unfit = DecisionTreeClassifier(max_depth=depth)
         tree_dict[tree_param] = test_models(model_unfit, False, train_variable,\
             train_features, test_variable, test_features)
         for trees in NUM_TREES:
             param = "Number of Trees: " + str(trees) +\
                 ", Max Depth of Trees: " + str(depth)
-            print(FOREST, param)
             model_unfit = RandomForestClassifier(n_estimators=trees,\
                 max_depth=depth)
             forest_dict[param] = test_models(model_unfit, False,
                 train_variable, train_features, test_variable, test_features)
-            print(EXTRA, param)
             model_unfit = ExtraTreesClassifier(n_estimators=trees,\
                 max_depth=depth)
             extra_dict[param] = test_models(model_unfit, False, train_variable,\
@@ -215,8 +242,13 @@ def ada_boost_modeling(train_variable, train_features, test_variable,\
     Creates multiple AdaBoost models
 
     Inputs:
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
+        ada_dict: a dictionary with all information about all ada boost models
     '''
     ada_dict = {}
     N_ESTIMATORS = [10, 30, 50, 100, 200]
@@ -224,7 +256,6 @@ def ada_boost_modeling(train_variable, train_features, test_variable,\
     for n in N_ESTIMATORS:
         for rate in LEARNING_RATE:
             param = "Estimators: " + str(n) + ", Learning Rate: " + str(rate)
-            print(ADA_BOOSTING, param)
             model_unfit = AdaBoostClassifier(n_estimators=n,\
                 learning_rate=rate)
             ada_dict[param] = test_models(model_unfit, False, train_variable,\
@@ -237,19 +268,21 @@ def bagging_modeling(train_variable, train_features, test_variable,\
     Creates multiple bagging models
 
     Inputs:
-        num_feat: the number of features in the training set
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
+        bag_dict: a dictionary with all information about all bagging models
     '''
     bag_dict = {}
-
     N_ESTIMATORS = [5, 10, 30, 50]
     MAX_SAMPLES = [10, 50, 100, 500]
 
     for n in N_ESTIMATORS:
         for sample in MAX_SAMPLES:
             param = "Estimators: " + str(n) + ", Samples: " + str(sample)
-            print(BAGGING, param)
             model_unfit = BaggingClassifier(n_estimators=n,\
                 max_samples=sample)
             bag_dict[param] = test_models(model_unfit, False, train_variable,\
@@ -259,35 +292,45 @@ def bagging_modeling(train_variable, train_features, test_variable,\
 def test_models(model_unfit, is_svm, train_variable, train_features,\
     test_var, test_features):
     '''
-    Tests and evaluates models on testing data
+    Fits a model to the data, tests the model, and then evaluates the model
 
     Inputs:
-        model: a trained model we want to test
-        variable: column name of the variable
-        features: list of column names of the features
+        model_unfit: a model that has not been fitted to the data
+        is_svm: a boolean that is True is the model is an SVM model and False
+            for all other models
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
 
     Outputs:
-        eval_dict: a dictionary of model evaluations
+        eval_dict: a dictionary with all evaluation metrics for all thresholds
     '''
-    model = model_unfit.fit(train_features, train_variable)
-
-    THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
-
     eval_dict = {}
+    THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
+    
+    #First we fit the model to the training data
+    model = model_unfit.fit(train_features, train_variable)
+    
+    #Next, we predict the probabilities for the testing data
     if is_svm:
         probabilities = model.decision_function(test_features)
     else:
         probabilities = model.predict_proba(test_features)[:,1]
+    
+    #Now we evaluate
+    #First evaluations only need the probabilities
     key = "No Threshold"
     roc_auc = roc_auc_score(y_true=test_var, y_score=probabilities)
     eval_dict[key] = {ROC_AUC: roc_auc}
-    print(ROC_AUC, roc_auc)
+    plot_pre_rec(test_var, probabilities)
+    
+    #All other evaluations need to loop through the thresholds
     for thresh in THRESHOLDS:    
         calc_threshold = lambda x,y: 0 if x < y else 1
         predicted = np.array([calc_threshold(score, thresh) for score in
             probabilities])
         key = "Threshold: " + str(thresh)
-        print(key)
         eval_dict[key] = evaluate_models(test_var, predicted)
     return eval_dict
 
@@ -295,18 +338,40 @@ def evaluate_models(true, predicted):
     '''
     Evaluates models on multiple evaluations metrics
 
-    Inouts:
+    Inputs:
+        true: a pandas series of the true outcome for testing data
+        predicted: the model's prediction of the outcome
 
     Outputs:
+        eval_dict: a dictionary mapping an evaluation metric to its
+            corresponding score
     '''
     eval_dict = {}
-    acc = accuracy(y_true=true, y_pred=predicted)
-    eval_dict[ACCURACY] = acc
-    print(ACCURACY, acc)
-    pre = precision_score(y_true=true, y_pred=predicted)
-    eval_dict[PRECISION] = pre
-    print(PRECISION, pre)
-    rec = recall_score(y_true=true, y_pred=predicted)
-    eval_dict[RECALL] = rec
-    print(RECALL, rec)
+    eval_dict[ACCURACY] = accuracy(y_true=true, y_pred=predicted)
+    eval_dict[PRECISION] = precision_score(y_true=true, y_pred=predicted)
+    eval_dict[RECALL] = recall_score(y_true=true, y_pred=predicted)
+    eval_dict[F1] = f1_score(y_true=true, y_pred=predicted)
     return eval_dict
+
+def plot_pre_rec(test_var, probabilities):
+    '''
+    Plots the precision recall score and saves it for all models
+
+    Please note: this code borrows heavily from sklearn documentation:
+
+    https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision
+        _recall_curve.html
+    
+    and
+    
+    https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision
+        _recall.html
+
+
+    Inputs:
+        test_var: the true values of the outcome
+        probabilities: the probability the model calculates of the outcome being
+            a 1
+    '''
+    precision, recall, thresholds = precision_recall_curve(test_var,\
+        probabilities)

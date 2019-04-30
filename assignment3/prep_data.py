@@ -14,7 +14,7 @@ import os.path
 import numpy as np
 from datetime import datetime, timedelta
 
-#Defined constants for this assignment
+#Defined constants for the column names
 PROJ_ID = 'projectid'
 TEACH_ID = 'teacher_acctid'
 SCHOOL_ID1 = 'schoolid'

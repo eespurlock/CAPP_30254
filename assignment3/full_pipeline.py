@@ -27,8 +27,8 @@ def pipeline(csv_name=csv_file):
             assignment)
 
     Outputs:
-        models_eval: a dictionary of the different models we have tested, the
-            different parameters we have tried on them and the evaluation
+        models_eval: a pandas dataframe of the different models we have tested,
+            the different parameters we have tried on them and the evaluation
             metrics we have used
     '''
 
@@ -44,10 +44,9 @@ def pipeline(csv_name=csv_file):
     df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols)
 
-    df_all_data.to_csv("Data_For_Eval")
+    df_all_data.to_csv("Data_For_Eval.csv")
     models_dict = modeling.split_by_date(df_all_data, split, variable, features)
     
-    return models_dict
     return table_models_eval(models_dict)
 
 def table_models_eval(models_eval):
@@ -76,5 +75,5 @@ def table_models_eval(models_eval):
 
     df_evaluated_models = pd.DataFrame(np.array(df_lst), columns=col_lst)
 
-    df_evaluated_models.to_csv("Modeling_Projects_2012_2013")
+    df_evaluated_models.to_csv("Modeling_Projects_2012_2013.csv")
     return df_evaluated_models
