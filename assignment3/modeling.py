@@ -27,7 +27,6 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
 from sklearn.metrics import accuracy_score as accuracy,\
     precision_score, recall_score, roc_auc_score, f1_score,\
     precision_recall_curve
-from sklearn.utils.fixes import signature
 
 #Defined constants for this assignment
 #models we will use
@@ -361,12 +360,6 @@ def plot_pre_rec(test_var, probabilities):
 
     https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision
         _recall_curve.html
-    
-    and
-    
-    https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision
-        _recall.html
-
 
     Inputs:
         test_var: the true values of the outcome
@@ -375,3 +368,10 @@ def plot_pre_rec(test_var, probabilities):
     '''
     precision, recall, thresholds = precision_recall_curve(test_var,\
         probabilities)
+
+    plt.xlabel('Recall / Recall Scores')
+    plt.ylabel('Threshold')
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.average('Precison-Recall Curve')
+
