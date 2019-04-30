@@ -47,6 +47,7 @@ def pipeline(csv_name=csv_file):
     df_all_data.to_csv("Data_For_Eval")
     models_dict = modeling.split_by_date(df_all_data, split, variable, features)
     
+    return models_dict
     return table_models_eval(models_dict)
 
 def table_models_eval(models_eval):
@@ -62,27 +63,18 @@ def table_models_eval(models_eval):
     '''
     col_lst = ['Date', 'Model Name', 'Parameters', 'Evaluation Name',
         'Threshold', 'Result']
-    model_lst = []
-    param_lst = []
-    date_lst = []
-    eval_lst = []
-    thres_lst = []
-    out_lst = []
+    df_lst = []
 
     for dates, model_dict in models_eval.items():
         for model, param_dict in model_dict.items():
             for param, eval_dict in param_dict.items():
                 for threshold, eval_outcome_dict in eval_dict.items():
                     for eval_name, outcome in eval_outcome_dict.items():
-                        date_lst.append(dates)
-                        model_lst.append(model)
-                        param_lst.append(param)
-                        thres_lst.append(threshold)
-                        eval_lst.append(eval_name)
-                        out_lst.append(outcome)
+                        this_lst = [dates, model, param, eval_name, threshold,\
+                            outcome]
+                        df_lst.append(this_lst)
 
-    df_evaluated_models = pd.Dataframe(np.array(date_lst, model_lst, param_lst, 
-        eval_dict, thres_lst, out_lst), columns=col_lst)
+    df_evaluated_models = pd.DataFrame(np.array(df_lst), columns=col_lst)
 
     df_evaluated_models.to_csv("Modeling_Projects_2012_2013")
     return df_evaluated_models

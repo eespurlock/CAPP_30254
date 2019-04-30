@@ -27,7 +27,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier,\
 
 #sklearn metrics
 from sklearn.metrics import accuracy_score as accuracy,\
-    log_loss, precision_score, recall_score, roc_auc_score
+    precision_score, recall_score, roc_auc_score
 
 #Defined constants for this assignment
 REGRESSION = "Logistic Regression"
@@ -40,9 +40,6 @@ ADA_BOOSTING = "Ada Boosting"
 BAGGING = "Bagging"
 
 ACCURACY = "Accuracy"
-AVG_PREC = "Average Precision"
-BRIER = "Brier Score Loss"
-LOG = "Log Loss"
 PRECISION = "Precision"
 RECALL = "Recall"
 ROC_AUC = "ROC_AUC"
@@ -65,18 +62,25 @@ def split_by_date(df_all_data, split, variable, features):
 
     #Initialize test and train dates
     end_train = time_series.min()
-    begin_test = end_train
-    end_test = begin_test
+    begin_train = 0
+    begin_test = 0
+    end_test = end_train
 
     while end_test < final_date:
-        #The training data ends 180 days after than the end of the last train
+        #The training data ends 180 days after ending of the last train
+        #the training data begins the day of the ending of train data
+        begin_train = end_train
         end_train = end_train + timedelta(days=180)
+        #Testing data begins the day after training data ends
+        #Testing data ends 180 days after it begins
         begin_test = end_train + timedelta(days=1)
         end_test = begin_test + timedelta(days=180)
         dates = str(begin_test) + " - " + str(end_test)
         
         #Now we create the training and testing data
-        train_filter = df_all_data[split] <= end_train
+        train_filter =\
+            (df_all_data[split] <= end_train) &\
+            (df_all_data[split] >= begin_train)
         train_data = df_all_data[train_filter]
         test_filter =\
             (df_all_data[split] <= end_test) &\
@@ -92,6 +96,7 @@ def split_by_date(df_all_data, split, variable, features):
         #Now we create the models dictionary
         #By the end of this assignent, I suspect you will tell me I rely too
         #much on dictionaries
+        print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
 
@@ -108,23 +113,23 @@ def training_models(train_variable, train_features, test_variable,\
         models_dict: a dictionary of models
     '''
     models_dict = {}
-    models_dict[REGRESSION], models_dict[SVM] = regression_svm_modeling()
-    models_dict[KNN] = knn_modeling()
+    models_dict[REGRESSION], models_dict[SVM] =\
+        regression_svm_modeling(train_variable, train_features, test_variable,\
+        test_features)
+    models_dict[KNN] = knn_modeling(train_variable, train_features,\
+        test_variable, test_features)
     models_dict[FOREST], models_dict[EXTRA], models_dict[TREE] =\
-        forest_modeling()
-    models_dict[ADA_BOOSTING] = ada_boost_modeling()
-    models_dict[BAGGING] = bagging_modeling()
-    
-    for name, model_param in models_dict.items():
-        for param, model_unfit in model_param.items():
-            print(name, param)
-            model = model_unfit.fit(train_features, train_variable)
-            models_dict[name][param] = test_models(model, test_variable,\
-                test_features, name)
+        forest_modeling(train_variable, train_features, test_variable,\
+        test_features)
+    models_dict[ADA_BOOSTING] = ada_boost_modeling(train_variable,\
+        train_features, test_variable, test_features)
+    models_dict[BAGGING] = bagging_modeling(train_variable, train_features,\
+        test_variable, test_features)
 
     return models_dict
 
-def regression_svm_modeling():
+def regression_svm_modeling(train_variable, train_features, test_variable,\
+    test_features):
     '''
     Creates multiple regression models
 
@@ -134,14 +139,21 @@ def regression_svm_modeling():
     '''
     reg_dict = {}
     svm_dict = {}
-    C_VALS = [1.0, 1.2, 1.5, 2.0, 2.5, 5]
+    C_VALS = [1.0, 1.2, 1.5, 2.0, 2.5]
     for c in C_VALS:
         param = "C value: " + str(c)
-        reg_dict[param] = LogisticRegression(C=c)
-        svm_dict[param] = LinearSVC(C=c)
+        print(REGRESSION, param)
+        model_unfit = LogisticRegression(C=c)
+        reg_dict[param] = test_models(model_unfit, False, train_variable,\
+            train_features, test_variable, test_features)
+        print(SVM, param)
+        model_unfit = LinearSVC(C=c)
+        svm_dict[param] = test_models(model_unfit, True, train_variable,\
+            train_features, test_variable, test_features)
     return reg_dict, svm_dict
 
-def knn_modeling():
+def knn_modeling(train_variable, train_features, test_variable,\
+    test_features):
     '''
     Creates multiple nearest neighbors models
 
@@ -150,13 +162,17 @@ def knn_modeling():
     Outputs:
     '''
     knn_dict = {}
-    NEIGHBORS = [1, 2, 5, 10, 20, 50, 100]
+    NEIGHBORS = [1, 5, 10, 20, 50, 100]
     for k in NEIGHBORS:
         param = "K Neighbors: " + str(k)
-        knn_dict[param] = KNeighborsClassifier(n_neighbors=k)
+        print(KNN, param)
+        model_unfit = KNeighborsClassifier(n_neighbors=k)
+        knn_dict[param] = test_models(model_unfit, False, train_variable,\
+            train_features, test_variable, test_features)
     return knn_dict
 
-def forest_modeling():
+def forest_modeling(train_variable, train_features, test_variable,\
+    test_features):
     '''
     Creates multiple random forest models and multiple extra trees models
     (Random forests and extra trees take the same parameters, which is why
@@ -170,24 +186,31 @@ def forest_modeling():
     forest_dict = {}
     extra_dict = {}
     tree_dict = {}
-    NUM_TREES = [5, 20, 50, 200]
-    MAX_DEPTH = [1, 5, 10, 20, 50, 100, 200]
-    MAX_LEAF_NODES = [10, 100, None]
+    NUM_TREES = [5, 25, 75]
+    MAX_DEPTH = [1, 5, 20, 50, 100, 200]
     for depth in MAX_DEPTH:
         tree_param = "Max Depth of Trees: " + str(depth)
-        tree_dict[tree_param] = DecisionTreeClassifier(max_depth=depth)
+        print(TREE, tree_param)
+        model_unfit = DecisionTreeClassifier(max_depth=depth)
+        tree_dict[tree_param] = test_models(model_unfit, False, train_variable,\
+            train_features, test_variable, test_features)
         for trees in NUM_TREES:
-            for leaf in MAX_LEAF_NODES:
-                param = "Number of Trees: " + str(trees) +\
-                    ", Max Depth of Trees: " + str(depth) +\
-                    ", Max Leaf Nodes: " + str(leaf)
-                forest_dict[param] = RandomForestClassifier(n_estimators=trees,\
-                    max_depth=depth, max_leaf_nodes=leaf)
-                extra_dict[param] = ExtraTreesClassifier(n_estimators=trees,\
-                    max_depth=depth, max_leaf_nodes=leaf)
+            param = "Number of Trees: " + str(trees) +\
+                ", Max Depth of Trees: " + str(depth)
+            print(FOREST, param)
+            model_unfit = RandomForestClassifier(n_estimators=trees,\
+                max_depth=depth)
+            forest_dict[param] = test_models(model_unfit, False,
+                train_variable, train_features, test_variable, test_features)
+            print(EXTRA, param)
+            model_unfit = ExtraTreesClassifier(n_estimators=trees,\
+                max_depth=depth)
+            extra_dict[param] = test_models(model_unfit, False, train_variable,\
+                train_features, test_variable, test_features)
     return forest_dict, extra_dict, tree_dict
 
-def ada_boost_modeling():
+def ada_boost_modeling(train_variable, train_features, test_variable,\
+    test_features):
     '''
     Creates multiple AdaBoost models
 
@@ -201,11 +224,15 @@ def ada_boost_modeling():
     for n in N_ESTIMATORS:
         for rate in LEARNING_RATE:
             param = "Estimators: " + str(n) + ", Learning Rate: " + str(rate)
-            ada_dict[param] = AdaBoostClassifier(n_estimators=n,\
+            print(ADA_BOOSTING, param)
+            model_unfit = AdaBoostClassifier(n_estimators=n,\
                 learning_rate=rate)
+            ada_dict[param] = test_models(model_unfit, False, train_variable,\
+                train_features, test_variable, test_features)
     return ada_dict
 
-def bagging_modeling():
+def bagging_modeling(train_variable, train_features, test_variable,\
+    test_features):
     '''
     Creates multiple bagging models
 
@@ -216,17 +243,21 @@ def bagging_modeling():
     '''
     bag_dict = {}
 
-    N_ESTIMATORS = [5, 10, 20, 30, 50]
-    MAX_SAMPLES = [1, 10, 50, 100, 500]
+    N_ESTIMATORS = [5, 10, 30, 50]
+    MAX_SAMPLES = [10, 50, 100, 500]
 
     for n in N_ESTIMATORS:
         for sample in MAX_SAMPLES:
             param = "Estimators: " + str(n) + ", Samples: " + str(sample)
-            bag_dict[param] = BaggingClassifier(n_estimators=n,\
+            print(BAGGING, param)
+            model_unfit = BaggingClassifier(n_estimators=n,\
                 max_samples=sample)
+            bag_dict[param] = test_models(model_unfit, False, train_variable,\
+                train_features, test_variable, test_features)
     return bag_dict
 
-def test_models(model, test_var, test_features, name):
+def test_models(model_unfit, is_svm, train_variable, train_features,\
+    test_var, test_features):
     '''
     Tests and evaluates models on testing data
 
@@ -238,21 +269,25 @@ def test_models(model, test_var, test_features, name):
     Outputs:
         eval_dict: a dictionary of model evaluations
     '''
+    model = model_unfit.fit(train_features, train_variable)
+
     THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
 
     eval_dict = {}
-    if name == SVM:
+    if is_svm:
         probabilities = model.decision_function(test_features)
     else:
         probabilities = model.predict_proba(test_features)[:,1]
     key = "No Threshold"
     roc_auc = roc_auc_score(y_true=test_var, y_score=probabilities)
     eval_dict[key] = {ROC_AUC: roc_auc}
+    print(ROC_AUC, roc_auc)
     for thresh in THRESHOLDS:    
         calc_threshold = lambda x,y: 0 if x < y else 1
         predicted = np.array([calc_threshold(score, thresh) for score in
             probabilities])
         key = "Threshold: " + str(thresh)
+        print(key)
         eval_dict[key] = evaluate_models(test_var, predicted)
     return eval_dict
 
@@ -265,8 +300,13 @@ def evaluate_models(true, predicted):
     Outputs:
     '''
     eval_dict = {}
-    eval_dict[ACCURACY] = accuracy(y_true=true, y_pred=predicted)
-    eval_dict[LOG] = log_loss(y_true=true, y_pred=predicted)
-    eval_dict[PRECISION] = precision_score(y_true=true, y_pred=predicted)
-    eval_dict[RECALL] = recall_score(y_true=true, y_pred=predicted)
+    acc = accuracy(y_true=true, y_pred=predicted)
+    eval_dict[ACCURACY] = acc
+    print(ACCURACY, acc)
+    pre = precision_score(y_true=true, y_pred=predicted)
+    eval_dict[PRECISION] = pre
+    print(PRECISION, pre)
+    rec = recall_score(y_true=true, y_pred=predicted)
+    eval_dict[RECALL] = rec
+    print(RECALL, rec)
     return eval_dict
