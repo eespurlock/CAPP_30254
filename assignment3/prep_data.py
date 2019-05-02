@@ -148,8 +148,6 @@ def generate_var_feat(df_all_data, all_cols):
     for col in possible_features:
         ser = df_all_data[col].astype(dtype='float64', errors='ignore')
         if ser.dtype == 'float64':
-            col_mean = ser.mean()
-            ser = ser.fillna(col_mean)
             correlation = var_series.corr(ser, method='pearson')
             if abs(correlation) > 0.01:
                 df_all_data[col] = ser
