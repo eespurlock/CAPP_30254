@@ -14,7 +14,7 @@ modeling.py: splits data into testing and training sets, trains the data then te
 
 Modeling_Projects_2012_2013.csv: a CSV file with the models and evaluation metrics
 
-Data_For_Eval: the data after I clean it and pull out the features and variable I want
+Data_For_Eval.csv: the data after I clean it and pull out the features and variable I want
 
 Extra Trees.png: a graph showing the precision-recall curve I managed to graph
 
