@@ -12,4 +12,6 @@ prep_data.py: prepares the data for analysis by cleaning rows and columns and cr
 
 modeling.py: splits data into testing and training sets, trains the data then tests and evaluates it
 
+Extra Trees.png: a graph showing the precision-recall curve I managed to graph
+
 writeup.txt: writeup of my response
