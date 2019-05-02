@@ -394,7 +394,7 @@ def plot_pre_rec(train_variable, train_features,\
     plt.xlabel('Threshold')
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
-    plt.title(name)
+    plt.title(name + 'Precision-Recall Curve')
 
     #Now we save the figure
     plt.savefig(name)
