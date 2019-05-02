@@ -18,4 +18,4 @@ Data_For_Eval.csv: the data after I clean it and pull out the features and varia
 
 Extra Trees.png: a graph showing the precision-recall curve I managed to graph
 
-writeup.txt: writeup of my response
+Spurlock Writeup Assignment 3.pdf: writeup of how I put my code together, high level takeaways, and graphs
