@@ -386,7 +386,10 @@ def plot_pre_rec(train_variable, train_features,\
         probabilities = model.predict_proba(test_features)[:,1]
     precision, recall, thresholds = precision_recall_curve(test_var,\
         probabilities)
-
+    
+    #Need to add one element to the end of the thresholds data
+    thresholds = thresholds + [1]
+    
     #Now we graph the data
     plt.plot(thresholds, precision, color='b')
     plt.plot(thresholds, recall, color='orange')    
