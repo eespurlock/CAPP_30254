@@ -8,10 +8,11 @@ Assignment 3: Update the Pipeline
 PY file #3: creating and testing models
 '''
 #Imports
-#Pandas, numpy and marplot
+#Pandas, numpy and matplot
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta, relativedelta
+from datetime import datetime, timedelta
+from dateutil import relativedelta
 import matplotlib.pyplot as plt
 
 #sklearn models
@@ -71,14 +72,17 @@ def split_by_date(df_all_data, split, variable, features):
     end_test = end_train
 
     while end_test < final_date:
-        #The training data ends 6 months after the beginning of the train
+        #The training data ends 180 days after the beginning of the train
         #the training data begins the day after the ending of train data
         begin_train = end_train + timedelta(days=1)
-        end_train = begin_train + relativedelta(months=+6)
+        end_train = begin_train + timedelta(days=180)
         #Testing data begins the day after training data ends
-        #Testing data ends 6 months after it begins
+        #Testing data ends 180 days after it begins
         begin_test = end_train + timedelta(days=1)
-        end_test = begin_test + relativedelta(months=+6)
+        end_test = begin_test + timedelta(days=180)
+        #Prevents there being a set that is just a few days
+        if (final_date - end_test).days <= 30:
+            end_test = final_date
         dates = str(begin_test) + " - " + str(end_test)
         
         #Now we create the training and testing data
@@ -100,6 +104,7 @@ def split_by_date(df_all_data, split, variable, features):
         #Now we create the models dictionary
         #By the end of this assignent, I suspect you will tell me I rely too
         #much on dictionaries
+        print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
 
@@ -322,7 +327,6 @@ def test_models(model_unfit, is_svm, train_variable, train_features,\
     key = "No Threshold"
     roc_auc = roc_auc_score(y_true=test_var, y_score=probabilities)
     eval_dict[key] = {ROC_AUC: roc_auc}
-    plot_pre_rec(test_var, probabilities)
     
     #All other evaluations need to loop through the thresholds
     for thresh in THRESHOLDS:    
@@ -352,26 +356,47 @@ def evaluate_models(true, predicted):
     eval_dict[F1] = f1_score(y_true=true, y_pred=predicted)
     return eval_dict
 
-def plot_pre_rec(test_var, probabilities):
+def plot_pre_rec(train_variable, train_features,\
+    test_var, test_features, is_svm, model, name):
     '''
-    Plots the precision recall score and saves it for all models
+    Plots the precision recall score and saves it for select models
 
-    Please note: this code borrows heavily from sklearn documentation:
+    First note: this code borrows heavily from sklearn documentation:
 
     https://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision
         _recall_curve.html
 
+    Second Note: Because there are so many models, I am only going to call this
+        function for select models I want to see the full curve for
+
     Inputs:
-        test_var: the true values of the outcome
-        probabilities: the probability the model calculates of the outcome being
-            a 1
+        train_variable: pandas series of variable column for training set
+        train_features: pandas dataframe of features for training set
+        test_variable: pandas series of variable column for testing set
+        test_features: pandas dataframe of features for testing set
+        is_svm: boolean determining if the model is an svm model
+        model: the model we want to get the precision-recall curve for
+        name: the name of the graph we will save
     '''
+    #First we fit the model to the data
+    model = model.fit(train_features, train_variable)
+    #Now we find the probabilities
+    if is_svm:
+        probabilities = model.decision_function(test_features)
+    else:
+        probabilities = model.predict_proba(test_features)[:,1]
     precision, recall, thresholds = precision_recall_curve(test_var,\
         probabilities)
 
-    plt.xlabel('Recall / Recall Scores')
-    plt.ylabel('Threshold')
+    #Now we graph the data
+    plt.plot(thresholds, precision, color='b')
+    plt.plot(thresholds, recall, color='orange')    
+    plt.ylabel('Precision / Recall Scores')
+    plt.xlabel('Threshold')
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
-    plt.average('Precison-Recall Curve')
+    plt.title('Precison-Recall Curve')
+
+    #Now we save the figure
+    plt.savefig(name)
 

@@ -37,16 +37,15 @@ def pipeline(csv_name=csv_file):
         return None
     all_cols = df_all_data.columns
 
-    ###!!!Now I need to explore the data!!!###
-    prep_data.explore_data(df_all_data, all_cols)
+    descriptions = prep_data.explore_data(df_all_data, all_cols)
     df_all_data = prep_data.clean_data(df_all_data, all_cols)
 
     df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols)
-
     df_all_data.to_csv("Data_For_Eval.csv")
+
     models_dict = modeling.split_by_date(df_all_data, split, variable, features)
-    
+
     return table_models_eval(models_dict)
 
 def table_models_eval(models_eval):

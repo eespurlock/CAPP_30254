@@ -13,6 +13,7 @@ import pandas as pd
 import os.path
 import numpy as np
 from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
 
 #Defined constants for the column names
 PROJ_ID = 'projectid'
@@ -68,7 +69,25 @@ def explore_data(df_all_data, all_cols):
     Inputs:
         df_all_data: pandas dataframe with our data
         all_cols: column names in our dataframe
+
+    Outputs:
+        description_dict: a dictionary describing the data in each column
     '''
+    #At this point in the class, I'm really not sure what I'm supposed
+    #to do with this
+
+    description_dict = {}
+    for col in all_cols:
+        print(col)
+        curr_series = df_all_data[col]
+        #Describes the data in the column
+        description_dict[col] = curr_series.describe()
+        #Plots the data in the column and saves the plot
+        #I tried to do this but was unable and did not have the time to
+        #figure it out
+        #plt.hist(col, data=df_all_data)
+        #plt.savefig(col)
+    return description_dict
 
 def clean_data(df_all_data, all_cols):
     '''
