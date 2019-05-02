@@ -104,7 +104,6 @@ def split_by_date(df_all_data, split, variable, features):
         #Now we create the models dictionary
         #By the end of this assignent, I suspect you will tell me I rely too
         #much on dictionaries
-        print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
 
