@@ -153,11 +153,9 @@ def generate_var_feat(df_all_data, all_cols):
                         .apply(lambda x: 1 if x == val else 0)
                     ser = df_all_data[new_col]
                     #!!!Why isn't this working???
-                    if ser.nunique() > 1:
-                        features.append(new_col)
+                    features.append(new_col)
             else:
-                if ser.nunique() > 1:
-                    features.append(col)
+                features.append(col)
 
     used_cols = features + [variable, split]
     df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
