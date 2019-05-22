@@ -76,7 +76,7 @@ def explore_data(df_all_data, all_cols):
     '''
     #At this point in the class, I'm really not sure what I'm supposed
     #to do with this
-
+    #!!!I need to figure out what to do here!!!
     description_dict = {}
     for col in all_cols:
         print(col)
@@ -104,10 +104,9 @@ def clean_data(df_all_data, all_cols):
         if ser.dtype in ['float64', 'int64']:
             new_col = col + '_imputed_mean'
             col_mean = ser.mean()
-            ser = ser.fillna(col_mean)
-            filt_ser = (df_all_data[col] == col_mean)
+            #!!!See if I have time to make this imputation better!!!
+            df_all_data[col] = ser.fillna(col_mean)
             #If an entry is equal to the column mean we say it is imputed
-            #!!!I need to work more on this!!!
             df_all_data[new_col] = df_all_data[col].apply(lambda x:\
                 1 if x == col_mean else 0)
        
@@ -139,7 +138,6 @@ def generate_var_feat(df_all_data, all_cols):
     #Now we need to find the features    
     all_cols = df_all_data.columns
     features = []
-    var_series = df_all_data[variable]
 
     for col in all_cols:
         if col != PROJ_ID:
@@ -150,33 +148,21 @@ def generate_var_feat(df_all_data, all_cols):
                 for val in val_unique:
                     new_col = col + "_" + val
                     #Create a dummy variable on the column value
-                    #!!!Make sure this works!!!
+                    
                     df_all_data[new_col] = df_all_data[col]\
                         .apply(lambda x: 1 if x == val else 0)
                     ser = df_all_data[new_col]
-                    if add_to_features(ser, var_series):
+                    #!!!Why isn't this working???
+                    if ser.nunique() > 1:
                         features.append(new_col)
             else:
-                if add_to_features(ser, var_series):
+                if ser.nunique() > 1:
                     features.append(col)
 
     used_cols = features + [variable, split]
     df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
 
     return df_all_data, variable, features, split
-
-def add_to_features(ser, var_series):
-    '''
-    Determines if a column should be added to the list of features
-    '''
-    correlation = var_series.corr(ser, method='pearson')
-    #We want a correlation of more than 0.001 and for there to be more than 1
-    #value in the column
-    #!!!I need to fix this!!!
-    if abs(correlation) > 0.001 and ser.nunique() >= 2.0:
-        return True
-    else:
-        return False
 
 def drop_extra_columns(df_all_data, col_list, all_cols):
     '''
