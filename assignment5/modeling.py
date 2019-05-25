@@ -47,7 +47,7 @@ RECALL = "Recall"
 ROC_AUC = "ROC_AUC"
 F1 = "F1"
 
-def split_by_date(df_all_data, split, variable, features):
+def split_by_date(df_all_data, split, variable, features, i, num_splits):
     '''
     Splits the data by date listed in the split column
 
@@ -64,9 +64,15 @@ def split_by_date(df_all_data, split, variable, features):
     models_dict = {}
     time_series = df_all_data[split]
     final_date = time_series.max()
+    first_date = time_series.min()
+    #Now we need to find the number of days in each split
+    #Fist, we find the number of days between the max and min dates
+    between = (final_date - first_date).days
+    #Then, we need to find how many days are in the split
+    days_in_split = ((between / i) / num_splits) * i
 
     #Initialize test and train dates
-    end_train = time_series.min() - timedelta(days=1)
+    end_train = first_date - timedelta(days=1)
     begin_train = 0
     begin_test = 0
     end_test = end_train
@@ -75,13 +81,13 @@ def split_by_date(df_all_data, split, variable, features):
         #The training data ends 180 days after the beginning of the train
         #the training data begins the day after the ending of train data
         begin_train = end_train + timedelta(days=1)
-        end_train = begin_train + timedelta(days=180)
+        end_train = begin_train + timedelta(days=days_in_split)
         #Testing data begins the day after training data ends
         #Testing data ends 180 days after it begins
-        begin_test = end_train + timedelta(days=1)
-        end_test = begin_test + timedelta(days=180)
+        begin_test = end_train + timedelta(days=i)
+        end_test = begin_test + timedelta(days=days_in_split)
         #Prevents there being a set that is just a few days
-        if (final_date - end_test).days <= 30:
+        if (final_date - end_test).days <= i:
             end_test = final_date
         dates = str(begin_test) + " - " + str(end_test)
         
@@ -102,8 +108,6 @@ def split_by_date(df_all_data, split, variable, features):
         test_features = test_data[features]
 
         #Now we create the models dictionary
-        #By the end of this assignent, I suspect you will tell me I rely too
-        #much on dictionaries
         print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
@@ -126,6 +130,7 @@ def training_models(train_variable, train_features, test_variable,\
     '''
     models_dict = {}
     
+    #!!!I need to make it so they are not all functions!!!
     #Set the value for all model types
     models_dict[REGRESSION], models_dict[SVM] =\
         regression_svm_modeling(train_variable, train_features, test_variable,\

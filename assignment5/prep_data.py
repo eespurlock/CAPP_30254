@@ -43,7 +43,7 @@ STUDENTS = 'students_reached'
 DOUBLE = 'eligible_double_your_impact_match'
 POSTED = 'date_posted'
 FUNDED = 'datefullyfunded'
-VAR = 'funded_in_60_days'
+VAR = 'funded_in_i_days'
 
 def import_data(csv_name):
     '''
@@ -104,7 +104,6 @@ def clean_data(df_all_data, all_cols):
         if ser.dtype in ['float64', 'int64']:
             new_col = col + '_imputed_mean'
             col_mean = ser.mean()
-            #!!!See if I have time to make this imputation better!!!
             df_all_data[col] = ser.fillna(col_mean)
             #If an entry is equal to the column mean we say it is imputed
             df_all_data[new_col] = df_all_data[col].apply(lambda x:\
@@ -112,13 +111,14 @@ def clean_data(df_all_data, all_cols):
        
     return df_all_data
 
-def generate_var_feat(df_all_data, all_cols):
+def generate_var_feat(df_all_data, all_cols, i):
     '''
     Generates the variable and features for the dataset
 
     Inputs:
         df_all_data: pandas dataframe with our data
         all_cols: column names in our dataframe
+        i: the number of days we want something to be funded in
 
     Outputs:
         df_all_data: a pandas dataframe with only the columns we will need
@@ -130,10 +130,10 @@ def generate_var_feat(df_all_data, all_cols):
     variable = VAR
     split = POSTED
     
-    #First, we create the variable: 0 of finded within 60 days and 1 if not
+    #First, we create the variable: 0 of finded within i days and 1 if not
     df_all_data[VAR] = df_all_data[FUNDED] - df_all_data[POSTED]
     df_all_data[VAR] = df_all_data[VAR]\
-        .apply(lambda x: 0 if x.days <= 60 else 1)
+        .apply(lambda x: 0 if x.days <= i else 1)
     
     #Now we need to find the features    
     all_cols = df_all_data.columns
@@ -148,11 +148,8 @@ def generate_var_feat(df_all_data, all_cols):
                 for val in val_unique:
                     new_col = col + "_" + val
                     #Create a dummy variable on the column value
-                    
                     df_all_data[new_col] = df_all_data[col]\
                         .apply(lambda x: 1 if x == val else 0)
-                    ser = df_all_data[new_col]
-                    #!!!Why isn't this working???
                     features.append(new_col)
             else:
                 features.append(col)
