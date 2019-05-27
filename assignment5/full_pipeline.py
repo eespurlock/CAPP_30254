@@ -49,8 +49,8 @@ def pipeline(csv=csv_name, i=60, num_splits=3):
     print('Generating Var and Feat')
     df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols, i)
-    #df_all_data.to_csv("Data_For_Eval.csv")
-    #return True
+    df_all_data.to_csv("Data_For_Eval.csv")
+    return True
 
     print('Modeling')
     models_dict = modeling.split_by_date(df_all_data, split, variable,\

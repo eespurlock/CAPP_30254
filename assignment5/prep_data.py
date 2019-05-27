@@ -74,18 +74,12 @@ def explore_data(df_all_data, all_cols):
     Outputs:
         description_dict: a dictionary describing the data in each column
     '''
-    #At this point in the class, I'm really not sure what I'm supposed
-    #to do with this
-    #!!!I need to figure out what to do here!!!
+    #I'm really not sure what I'm supposed to do with this
     description_dict = {}
     for col in all_cols:
-        print(col)
         curr_series = df_all_data[col]
         #Describes the data in the column
         description_dict[col] = curr_series.describe()
-        #Plots the data in the column and saves the plot
-        #plt.hist(col, data=df_all_data)
-        #plt.savefig(col)
     return description_dict
 
 def clean_data(df_all_data, all_cols):
@@ -141,6 +135,7 @@ def generate_var_feat(df_all_data, all_cols, i):
 
     for col in all_cols:
         if col != PROJ_ID:
+            print(col)
             ser = df_all_data[col]
             if ser.dtype not in ['float64', 'int64']:
                 #Find all unique values in the column

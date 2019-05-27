@@ -56,6 +56,8 @@ def split_by_date(df_all_data, split, variable, features, i, num_splits):
         split: the name of the column we are splitting on
         variable: the name of the variable column
         features: list of the names of the feature columns
+        i: number of days we want project to be funded in
+        num_splits: the number of testing and training splits
 
     Outputs:
         models_dict: a dictionary with all information about all models for all
@@ -78,14 +80,12 @@ def split_by_date(df_all_data, split, variable, features, i, num_splits):
     end_test = end_train
 
     while end_test < final_date:
-        #The training data ends 180 days after the beginning of the train
-        #the training data begins the day after the ending of train data
+        #the training data begins the day after the ending of last train data
         begin_train = end_train + timedelta(days=1)
         end_train = begin_train + timedelta(days=days_in_split)
-        #Testing data begins the day after training data ends
-        #Testing data ends 180 days after it begins
+        #Testing data begins i days after training data ends
         begin_test = end_train + timedelta(days=i)
-        end_test = begin_test + timedelta(days=days_in_split)
+        end_test = begin_test + timedelta(days=days_in_split-i)
         #Prevents there being a set that is just a few days
         if (final_date - end_test).days <= i:
             end_test = final_date
@@ -130,7 +130,7 @@ def training_models(train_variable, train_features, test_variable,\
     '''
     models_dict = {}
     
-    #!!!I need to make it so they are not all functions!!!
+    #!!!I need to make it so they are not all functions
     #Set the value for all model types
     models_dict[REGRESSION], models_dict[SVM] =\
         regression_svm_modeling(train_variable, train_features, test_variable,\
@@ -315,7 +315,6 @@ def test_models(model_unfit, is_svm, train_variable, train_features,\
     Outputs:
         eval_dict: a dictionary with all evaluation metrics for all thresholds
     '''
-    #!!! I need to fix this up!!!
     #!!! I need to find a way to get the percent of popluation
     eval_dict = {}
     THRESHOLDS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5]
@@ -385,7 +384,7 @@ def plot_pre_rec(train_variable, train_features,\
         model: the model we want to get the precision-recall curve for
         name: the name of the graph we will save
     '''
-    #!!! I need to fix this up!!!
+    #!!! I need to fix this up
 
     #First we fit the model to the data
     model = model.fit(train_features, train_variable)
