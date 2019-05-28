@@ -41,11 +41,9 @@ def pipeline(csv=csv_name, i=60, num_splits=3, split='date_posted'):
 
     descriptions = prep_data.explore_data(df_all_data, all_cols)
 
-    print('Modeling')
     models_dict = modeling.split_by_date(df_all_data, split,\
         i, num_splits)
     
-    print('Creating final table')
     return table_models_eval(models_dict)
 
 def table_models_eval(models_eval):

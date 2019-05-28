@@ -135,9 +135,7 @@ def generate_var_feat(df_all_data, all_cols, i, split):
     for col in all_cols:
         #I do not want to include values that are different for every entry
         #I also do not want to include the variable or the dates in my features 
-        if col not in [PROJ_ID, TEACH_ID, SCHOOL_ID1, POSTED,\
-            FUNDED, VAR]:
-            print(col)
+        if col not in [PROJ_ID, POSTED, FUNDED, VAR]:
             ser = df_all_data[col]
             if ser.dtype not in ['float64', 'int64']:
                 #Find all unique values in the column

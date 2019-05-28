@@ -92,17 +92,16 @@ def split_by_date(df_all_data, split, i, num_splits):
         
         train_variable, train_features, test_variable, test_features =\
             create_train_test_df(df_all_data, begin_train, end_train,\
-                begin_test, end_test, split)
+                begin_test, end_test, split, i)
 
         #Now we create the models dictionary
-        print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
 
     return models_dict
 
 def create_train_test_df(df_all_data, begin_train, end_train,\
-    begin_test, end_test, i, split):
+    begin_test, end_test, split, i):
     '''
     Takes the dates of training and testing and gives the data
     frames for training and testing
@@ -132,7 +131,7 @@ def create_train_test_df(df_all_data, begin_train, end_train,\
     our_data = prep_data.clean_data(df_all_data, all_cols)
     all_cols = our_data.columns
     our_data, variable, features =\
-        generate_var_feat(our_data, all_cols, i, split)
+        prep_data.generate_var_feat(our_data, all_cols, i, split)
     
     #Now we create the training and testing data
     train_filter =\
