@@ -123,7 +123,7 @@ def generate_var_feat(df_all_data, all_cols, i, split):
         
     '''
     variable = VAR    
-    #First, we create the variable: 0 of finded within i days and 1 if not
+    #First, we create the variable: 0 if finded within i days and 1 if not
     df_all_data[VAR] = df_all_data[FUNDED] - df_all_data[POSTED]
     df_all_data[VAR] = df_all_data[VAR]\
         .apply(lambda x: 0 if x.days <= i else 1)
