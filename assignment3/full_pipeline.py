@@ -32,20 +32,26 @@ def pipeline(csv_name=csv_file):
             metrics we have used
     '''
 
+    print('Importing')
     df_all_data = prep_data.import_data(csv_name)
     if df_all_data is None:
         return None
     all_cols = df_all_data.columns
 
+    print('Exploring')
     descriptions = prep_data.explore_data(df_all_data, all_cols)
+    print('Cleaning')
     df_all_data = prep_data.clean_data(df_all_data, all_cols)
 
+    print('Generating Var and Feat')
     df_all_data, variable, features, split = prep_data.generate_var_feat(
         df_all_data, all_cols)
     df_all_data.to_csv("Data_For_Eval.csv")
 
+    print('Modeling')
     models_dict = modeling.split_by_date(df_all_data, split, variable, features)
-
+    
+    print('Creating final table')
     return table_models_eval(models_dict)
 
 def table_models_eval(models_eval):

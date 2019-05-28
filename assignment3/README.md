@@ -12,12 +12,3 @@ prep_data.py: prepares the data for analysis by cleaning rows and columns and cr
 
 modeling.py: splits data into testing and training sets, trains the data then tests and evaluates it
 
-Spurlock Report Assignment 3.pdf: the two page report requested at the end of the assignment
-
-Spurlock Writeup Assignment 3.pdf: writeup of how I put my code together, high level takeaways, and graphs
-
-Modeling_Projects_2012_2013.csv: a CSV file with the models and evaluation metrics
-
-Data_For_Eval.csv: the data after I clean it and pull out the features and variable I want
-
-Extra Trees.png: a graph showing the precision-recall curve I managed to graph

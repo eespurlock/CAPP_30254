@@ -8,7 +8,7 @@ Assignment 3: Update the Pipeline
 PY file #3: creating and testing models
 '''
 #Imports
-#Pandas, numpy and matplot
+#Pandas, numpy and marplot
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -104,6 +104,7 @@ def split_by_date(df_all_data, split, variable, features):
         #Now we create the models dictionary
         #By the end of this assignent, I suspect you will tell me I rely too
         #much on dictionaries
+        print(dates)
         models_dict[dates] = training_models(train_variable, train_features,\
             test_variable, test_features)
 
@@ -386,10 +387,7 @@ def plot_pre_rec(train_variable, train_features,\
         probabilities = model.predict_proba(test_features)[:,1]
     precision, recall, thresholds = precision_recall_curve(test_var,\
         probabilities)
-    
-    #Need to add one element to the end of the thresholds data
-    thresholds = thresholds + [1]
-    
+
     #Now we graph the data
     plt.plot(thresholds, precision, color='b')
     plt.plot(thresholds, recall, color='orange')    
@@ -397,7 +395,7 @@ def plot_pre_rec(train_variable, train_features,\
     plt.xlabel('Threshold')
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
-    plt.title(name + 'Precision-Recall Curve')
+    plt.title('Precison-Recall Curve')
 
     #Now we save the figure
     plt.savefig(name)
