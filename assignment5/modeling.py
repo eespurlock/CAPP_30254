@@ -14,6 +14,7 @@ import numpy as np
 from datetime import datetime, timedelta
 from dateutil import relativedelta
 import matplotlib.pyplot as plt
+import prep_data
 
 #sklearn models
 import sklearn.tree as tree
@@ -47,15 +48,13 @@ RECALL = "Recall"
 ROC_AUC = "ROC_AUC"
 F1 = "F1"
 
-def split_by_date(df_all_data, split, variable, features, i, num_splits):
+def split_by_date(df_all_data, split, i, num_splits):
     '''
     Splits the data by date listed in the split column
 
     Inputs:
         df_all_data: a pandas dataframe
         split: the name of the column we are splitting on
-        variable: the name of the variable column
-        features: list of the names of the feature columns
         i: number of days we want project to be funded in
         num_splits: the number of testing and training splits
 
@@ -91,21 +90,9 @@ def split_by_date(df_all_data, split, variable, features, i, num_splits):
             end_test = final_date
         dates = str(begin_test) + " - " + str(end_test)
         
-        #Now we create the training and testing data
-        train_filter =\
-            (df_all_data[split] <= end_train) &\
-            (df_all_data[split] >= begin_train)
-        train_data = df_all_data[train_filter]
-        test_filter =\
-            (df_all_data[split] <= end_test) &\
-            (df_all_data[split] >= begin_test)
-        test_data = df_all_data[test_filter]
-
-        #Now we have to create the variable and features data
-        train_variable = train_data[variable]
-        train_features = train_data[features]
-        test_variable = test_data[variable]
-        test_features = test_data[features]
+        train_variable, train_features, test_variable, test_features =\
+            create_train_test_df(df_all_data, begin_train, end_train,\
+                begin_test, end_test, split)
 
         #Now we create the models dictionary
         print(dates)
@@ -113,6 +100,57 @@ def split_by_date(df_all_data, split, variable, features, i, num_splits):
             test_variable, test_features)
 
     return models_dict
+
+def create_train_test_df(df_all_data, begin_train, end_train,\
+    begin_test, end_test, i, split):
+    '''
+    Takes the dates of training and testing and gives the data
+    frames for training and testing
+
+    Inputs:
+        df_all_data: a data frame with all the data
+        begin_train: date training begins
+        end_train: date training ends 
+        begin_test: date testing begins 
+        end_test: date testing ends 
+        split: column with date to split on
+        i: number of days we want project to be funded in
+
+    Outputs:
+        train_variable: dataframe with the variable for training set
+        train_features: dataframe with the features for the training set
+        test_variable: dataframe with the variable for testing set
+        test_features: dataframe with the features for the testing set
+    '''
+    #First, we need to only look at data in training and testing sets
+    filt =\
+        (df_all_data[split] <= end_test) &\
+        (df_all_data[split] >= begin_train) 
+    our_data = df_all_data[filt]
+
+    all_cols = df_all_data.columns
+    our_data = prep_data.clean_data(df_all_data, all_cols)
+    all_cols = our_data.columns
+    our_data, variable, features =\
+        generate_var_feat(our_data, all_cols, i, split)
+    
+    #Now we create the training and testing data
+    train_filter =\
+        (our_data[split] <= end_train) &\
+        (our_data[split] >= begin_train)
+    train_data = our_data[train_filter]
+    test_filter =\
+        (our_data[split] <= end_test) &\
+        (our_data[split] >= begin_test)
+    test_data = our_data[test_filter]
+
+    #Now we have to create the variable and features data
+    train_variable = train_data[variable]
+    train_features = train_data[features]
+    test_variable = test_data[variable]
+    test_features = test_data[features]
+
+    return train_variable, train_features, test_variable, test_features
 
 def training_models(train_variable, train_features, test_variable,\
     test_features):
@@ -129,8 +167,6 @@ def training_models(train_variable, train_features, test_variable,\
         models_dict: a dictionary with all information about all models
     '''
     models_dict = {}
-    
-    #!!!I need to make it so they are not all functions
     #Set the value for all model types
     models_dict[REGRESSION], models_dict[SVM] =\
         regression_svm_modeling(train_variable, train_features, test_variable,\
@@ -407,4 +443,3 @@ def plot_pre_rec(train_variable, train_features,\
 
     #Now we save the figure
     plt.savefig(name)
-

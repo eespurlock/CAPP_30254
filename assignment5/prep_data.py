@@ -105,7 +105,7 @@ def clean_data(df_all_data, all_cols):
        
     return df_all_data
 
-def generate_var_feat(df_all_data, all_cols, i):
+def generate_var_feat(df_all_data, all_cols, i, split):
     '''
     Generates the variable and features for the dataset
 
@@ -113,17 +113,16 @@ def generate_var_feat(df_all_data, all_cols, i):
         df_all_data: pandas dataframe with our data
         all_cols: column names in our dataframe
         i: the number of days we want something to be funded in
+        split: name of the column we will use to cordon off the training and 
+            testing data
 
     Outputs:
         df_all_data: a pandas dataframe with only the columns we will need
         variable: name of the variable column
         features: a list of the feature columns
-        split: name of the column we will use to cordon off the training and 
-            testing data
+        
     '''
-    variable = VAR
-    split = POSTED
-    
+    variable = VAR    
     #First, we create the variable: 0 of finded within i days and 1 if not
     df_all_data[VAR] = df_all_data[FUNDED] - df_all_data[POSTED]
     df_all_data[VAR] = df_all_data[VAR]\
@@ -134,14 +133,17 @@ def generate_var_feat(df_all_data, all_cols, i):
     features = []
 
     for col in all_cols:
-        if col != PROJ_ID:
+        #I do not want to include values that are different for every entry
+        #I also do not want to include the variable or the dates in my features 
+        if col not in [PROJ_ID, TEACH_ID, SCHOOL_ID1, POSTED,\
+            FUNDED, VAR]:
             print(col)
             ser = df_all_data[col]
             if ser.dtype not in ['float64', 'int64']:
                 #Find all unique values in the column
                 val_unique = ser.unique()
                 for val in val_unique:
-                    new_col = col + "_" + val
+                    new_col = col + "_" + str(val)
                     #Create a dummy variable on the column value
                     df_all_data[new_col] = df_all_data[col]\
                         .apply(lambda x: 1 if x == val else 0)
@@ -152,7 +154,7 @@ def generate_var_feat(df_all_data, all_cols, i):
     used_cols = features + [variable, split]
     df_all_data = drop_extra_columns(df_all_data, used_cols, all_cols)
 
-    return df_all_data, variable, features, split
+    return df_all_data, variable, features
 
 def drop_extra_columns(df_all_data, col_list, all_cols):
     '''

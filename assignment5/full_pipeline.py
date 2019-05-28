@@ -17,7 +17,7 @@ import modeling
 #Constant for this assignment
 csv_name = 'projects_2012_2013.csv'
 
-def pipeline(csv=csv_name, i=60, num_splits=3):
+def pipeline(csv=csv_name, i=60, num_splits=3, split='date_posted'):
     '''
     Goes from the beginning to the end of the machine learning pipeline
 
@@ -27,34 +27,23 @@ def pipeline(csv=csv_name, i=60, num_splits=3):
             assignment)
         i: the number of days we want something to be funded in
         num_splits: the number of training and testing splits
+        split: the name of the column with dates we want to split on
 
     Outputs:
         models_eval: a pandas dataframe of the different models we have tested,
             the different parameters we have tried on them and the evaluation
             metrics we have used
     '''
-
-    print('Importing')
     df_all_data = prep_data.import_data(csv)
     if df_all_data is None:
         return None
     all_cols = df_all_data.columns
 
-    print('Exploring')
     descriptions = prep_data.explore_data(df_all_data, all_cols)
-    print('Cleaning')
-    df_all_data = prep_data.clean_data(df_all_data, all_cols)
-    
-    all_cols = df_all_data.columns
-    print('Generating Var and Feat')
-    df_all_data, variable, features, split = prep_data.generate_var_feat(
-        df_all_data, all_cols, i)
-    df_all_data.to_csv("Data_For_Eval.csv")
-    return True
 
     print('Modeling')
-    models_dict = modeling.split_by_date(df_all_data, split, variable,\
-        features, i, num_splits)
+    models_dict = modeling.split_by_date(df_all_data, split,\
+        i, num_splits)
     
     print('Creating final table')
     return table_models_eval(models_dict)
