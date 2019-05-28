@@ -3,7 +3,7 @@ Esther Edith Spurlock (12196692)
 
 CAPP 30254
 
-Assignment 3: Update the Pipeline
+Assignment 5: Update the Pipeline
 
 PY file #2: prepares the data for testing and training
 '''
