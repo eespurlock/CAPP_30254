@@ -15,3 +15,8 @@ Python Files with code:
     modeling.py: splits data into testing and training sets, trains the data then tests and evaluates it
 
 Text Files
+    
+    Spurlock Writeup Assignment 5: a write-up of my code
+    
+    Spurlock Report Assignment 5: my findings
+    
