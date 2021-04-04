@@ -1,4 +1,4 @@
-# CAPP_30254
+# Teacher_Funding_Machine_Learning_Pipeline
 This repository includes projects that I completed for my Machine Learning class
 
 All of these projects are essentially the same project with each iteration building
